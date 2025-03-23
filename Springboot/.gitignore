@@ -1,36 +1,69 @@
-HELP.md
+# =====================
+# Java / Spring Boot
+# =====================
 target/
-!.mvn/wrapper/maven-wrapper.jar
+build/
+*.log
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven wrapper
+.mvn/
 !**/src/main/**/target/
 !**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
+!mvn/wrapper/maven-wrapper.jar
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+# Ignore application.properties (contains secrets)
+src/main/resources/application.properties
 
-### IntelliJ IDEA ###
-.idea
+# =====================
+# IDE / Editor Settings
+# =====================
+
+# IntelliJ IDEA
+.idea/
 *.iws
 *.iml
 *.ipr
+out/
+.sts4-cache/
 
-### NetBeans ###
+# Eclipse / STS
+.classpath
+.project
+.settings/
+.springBeans/
+.apt_generated/
+
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
+# VS Code
 .vscode/
-src/main/resources/application.properties
 
+# =====================
+# macOS / System files
+# =====================
 .DS_Store
+Thumbs.db
+
+# =====================
+# Node.js / Vue / Frontend
+# =====================
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

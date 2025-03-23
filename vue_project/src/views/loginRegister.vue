@@ -62,8 +62,10 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router' // ✅ 加入这个
 import axios from 'axios'
 
+const router = useRouter() // ✅ 创建 router 实例
 const isLogin = ref(false)
 const emailError = ref(false)
 const passwordError = ref(false)
@@ -85,6 +87,8 @@ const changeType = () => {
   existed.value = false
 }
 
+import { ElMessage } from 'element-plus'  // 确保这一行在你的 <script setup> 中有
+
 const login = async () => {
   if (form.username && form.userpwd) {
     try {
@@ -94,17 +98,26 @@ const login = async () => {
       }, {
         withCredentials: true
       })
-      alert(res.data.message)
+
+      // ✅ 成功提示
+      ElMessage.success(res.data.message || 'Login successful')
+
+      // ✅ 设置登录状态
+      localStorage.setItem('isLoggedIn', 'true')
+
+      // ✅ 跳转页面
+      router.push('/main')
     } catch (err) {
       console.error(err)
-      const msg = err.response?.data?.error || 'Login failed'
-      alert(msg)
+      const msg = err.response?.data?.message || 'Login failed'
+      ElMessage.error(msg)
       passwordError.value = true
     }
   } else {
-    alert("Fields cannot be empty!")
+    ElMessage.warning("Username and password cannot be empty!")
   }
 }
+
 
 const register = async () => {
   if (form.username && form.useremail && form.userpwd) {
@@ -116,24 +129,27 @@ const register = async () => {
       }, {
         withCredentials: true
       })
-      alert(res.data.message)
+
+      ElMessage.success(res.data.message || 'Registration successful!')
       changeType()
     } catch (err) {
       console.error(err)
       const msg = err.response?.data?.error || 'Registration failed'
-      alert(msg)
+      ElMessage.error(msg)
       existed.value = true
     }
   } else {
-    alert("Fields cannot be empty!")
+    ElMessage.warning("All fields are required!")
   }
 }
 
-// ✅ 新增：Google 登录跳转方法
+
+// ✅ Google 登录跳转
 const googleLogin = () => {
   window.location.href = 'http://localhost:8080/oauth2/authorization/google'
 }
 </script>
+
 
 
 

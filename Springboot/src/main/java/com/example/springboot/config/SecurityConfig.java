@@ -15,15 +15,19 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/auth/**", "/api/**", "/oauth2/**").permitAll()
+                        .requestMatchers(
+                                "/", // ✅ 放行首页重定向
+                                "/auth/**",
+                                "/api/**",
+                                "/oauth2/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("http://localhost:5173/home", true)
+                        // ✅ 登录成功后跳转到前端页面（会触发前端逻辑）
+                        .defaultSuccessUrl("http://localhost:5173/oauth-success", true)
                 );
 
         return http.build();
     }
-
 }
-

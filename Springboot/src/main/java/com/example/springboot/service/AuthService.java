@@ -17,7 +17,7 @@ public class AuthService {
 
     public User register(String username, String email, String password) {
         if (userRepository.findByUsername(username).isPresent()) {
-            throw new RuntimeException("用户名已存在！");
+            throw new RuntimeException("Username already exists!");
         }
 
         User user = new User();
@@ -31,12 +31,12 @@ public class AuthService {
     public User login(String username, String password) {
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
-            throw new RuntimeException("用户不存在！");
+            throw new RuntimeException("User does not exist!");
         }
 
         User user = userOptional.get();
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("密码错误！");
+            throw new RuntimeException("Incorrect password!");
         }
 
         return user;

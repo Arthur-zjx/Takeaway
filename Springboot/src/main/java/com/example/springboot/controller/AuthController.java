@@ -13,31 +13,28 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:5173")  // 指定前端来源
+@CrossOrigin(origins = "http://localhost:5173")  // Allow requests from frontend
 public class AuthController {
 
     @Autowired
     private AuthService authService;
 
-
-    @Controller
-    public class RedirectController {
-
-        @GetMapping("/")
-        public String redirectToFrontend() {
-            return "redirect:http://localhost:5173"; // Vue 项目的 URL
-        }
-    }
-
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
         try {
-            User user = authService.register(payload.get("username"), payload.get("email"), payload.get("password"));
+            User user = authService.register(
+                    payload.get("username"),
+                    payload.get("email"),
+                    payload.get("password")
+            );
+
             Map<String, String> response = new HashMap<>();
-            response.put("message", "注册成功！");
+            response.put("message", "Registration successful!");
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -45,12 +42,15 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody Map<String, String> payload) {
         try {
             User user = authService.login(payload.get("username"), payload.get("password"));
+
             Map<String, String> response = new HashMap<>();
-            response.put("message", "登录成功！");
+            response.put("message", "Login successful!");
             response.put("username", user.getUsername());
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 }
