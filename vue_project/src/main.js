@@ -5,10 +5,12 @@ import router from "@/router/index.js";
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 
-
 const app = createApp(App)
 
-// **确保 axios 访问 Spring Boot**
+// ✅ 添加这行：允许 axios 发送 cookie
+axios.defaults.withCredentials = true
+
+// ✅ 设置后端地址
 axios.defaults.baseURL = 'http://localhost:8080'
 
 app.config.globalProperties.$axios = axios

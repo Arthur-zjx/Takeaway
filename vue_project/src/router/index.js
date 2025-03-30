@@ -44,6 +44,11 @@ const routes = [
                 component: DishManage
             },
             {
+                path: 'dish/edit/:id?',
+                name: 'DishEdit',
+                component: () => import('@/views/DishEdit.vue')
+            },
+            {
                 path: '',
                 redirect: '/main/dashboard'
             }

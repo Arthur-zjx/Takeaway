@@ -16,7 +16,8 @@ public class CorsConfig {
                         .allowedOrigins("http://localhost:5173") // Vue 前端地址
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
-                        .allowCredentials(true);
+                        .allowCredentials(true)
+                        .maxAge(3600); // 设置预检请求的缓存时间，避免每次请求都需要预检
             }
         };
     }
