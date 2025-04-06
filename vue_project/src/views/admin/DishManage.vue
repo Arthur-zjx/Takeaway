@@ -20,24 +20,28 @@
     </div>
 
     <el-table :data="filteredDishes" border style="width: 100%" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" />
-      <el-table-column prop="name" label="Dish Name" width="180" />
-      <el-table-column prop="imageUrl" label="Image" width="120">
+      <el-table-column type="selection" />
+      <el-table-column prop="name" label="Dish Name" />
+      <el-table-column prop="imageUrl" label="Image">
         <template #default="scope">
           <img :src="scope.row.imageUrl" class="dish-img" />
         </template>
       </el-table-column>
-      <el-table-column prop="category" label="Category" width="120" />
-      <el-table-column prop="price" label="Price" width="100" />
-      <el-table-column prop="status" label="Status" width="120">
+      <el-table-column prop="category" label="Category" />
+      <el-table-column prop="price" label="Price" />
+      <el-table-column prop="status" label="Status">
         <template #default="scope">
           <el-tag :type="scope.row.status === 'available' ? 'success' : 'info'">
             {{ scope.row.status === 'available' ? 'Available' : 'Unavailable' }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="updateTime" label="Last Updated" />
-      <el-table-column label="Actions" width="220">
+      <el-table-column prop="updateTime" label="Last Updated">
+        <template #default="scope">
+          <span>{{ scope.row.updateTime ? formatDate(scope.row.updateTime) : 'empty' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="Actions">
         <template #default="scope">
           <div class="action-buttons">
             <el-button size="small" @click="handleEdit(scope.row)">Edit</el-button>
@@ -53,8 +57,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import {ref, computed, onMounted} from 'vue'
+import {useRouter} from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
@@ -82,6 +86,13 @@ const filteredDishes = computed(() => {
   })
 })
 
+// 格式化日期函数：将 ISO 字符串转换为本地时间格式
+const formatDate = (timestamp) => {
+  if (!timestamp) return 'empty'
+  const date = new Date(timestamp)
+  return date.toLocaleString()
+}
+
 // 获取所有菜品数据
 const fetchDishes = async () => {
   try {
@@ -94,7 +105,6 @@ const fetchDishes = async () => {
 
 // 搜索按钮操作（目前使用本地过滤）
 const handleSearch = () => {
-  // 若需要服务器端筛选，可通过 axios.get 并传入查询参数
   console.log('Search filters applied:', filters.value)
 }
 
@@ -143,7 +153,7 @@ const handleDelete = async (dish) => {
 // 切换菜品状态（available/unavailable），调用 PUT 更新菜品状态
 const toggleStatus = async (dish) => {
   const newStatus = dish.status === 'available' ? 'unavailable' : 'available'
-  const updatedDish = { ...dish, status: newStatus }
+  const updatedDish = {...dish, status: newStatus}
   try {
     await axios.put(`/api/dish/${dish.id}`, updatedDish)
     dish.status = newStatus

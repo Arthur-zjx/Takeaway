@@ -2,7 +2,7 @@
   <el-container style="height: 100vh;">
     <!-- Top Bar -->
     <el-header style="background: linear-gradient(135deg, rgb(57, 167, 176), rgb(56, 183, 145)); color: white; display: flex; justify-content: space-between; align-items: center;">
-      <div style="font-size: 20px; font-weight: bold;">🍽️ Takeaway Admin Panel</div>
+      <div style="font-size: 20px; font-weight: bold;">Takeaway Admin Panel</div>
       <div>
         <el-dropdown>
           <span class="el-dropdown-link">
@@ -55,6 +55,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowDown, House, Document, ForkSpoon } from '@element-plus/icons-vue'
+import { ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const route = useRoute()
@@ -69,9 +70,35 @@ const handleSelect = (index) => {
   router.push(index)
 }
 
-const logout = () => {
-  localStorage.removeItem('isLoggedIn')
-  router.push('/')
+const logout = async () => {
+  try {
+    await ElMessageBox.confirm(
+        '你确定要退出登录吗？',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+    )
+    console.log("用户确认退出")
+
+    const response = await fetch('http://localhost:8080/logout', {
+      method: 'POST',
+      credentials: 'include'
+    })
+    console.log("退出请求返回：", response)
+
+    if (!response.ok) {
+      console.error("退出接口请求失败", response)
+      throw new Error("Logout failed")
+    }
+
+    localStorage.removeItem('isLoggedIn')
+    router.push('/')
+  } catch (error) {
+    console.error("退出操作出错：", error)
+  }
 }
 
 onMounted(() => {
@@ -82,6 +109,7 @@ onMounted(() => {
   }
 })
 </script>
+
 
 <style scoped>
 .el-menu-item {

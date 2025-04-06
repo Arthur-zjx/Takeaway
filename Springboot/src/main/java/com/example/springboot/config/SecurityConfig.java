@@ -18,36 +18,40 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors() // ✅ 启用自定义跨域配置
+                .cors()
                 .and()
-                .csrf(csrf -> csrf.disable()) // ✅ 禁用 CSRF 防护（可以根据需求选择性禁用）
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(
-                                "/",              // ✅ 首页或根路径
-                                "/auth/**",       // ✅ 登录注册接口
-                                "/api/**",        // ✅ 放行 dish 上传等 API
-                                "/oauth2/**"      // ✅ Google 登录跳转
-                        ).permitAll()
-                        .anyRequest().authenticated() // ✅ 需要认证的请求
+                        .requestMatchers("/", "/auth/**", "/api/**", "/oauth2/**", "/logout").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("http://localhost:5173/oauth-success", true) // ✅ 登录成功后跳转的 URL
+                        .defaultSuccessUrl("http://localhost:5173/oauth-success", true)
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            request.getSession().invalidate();
+                            response.setStatus(200);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"message\": \"Logout successful\"}");
+                        })
                 );
 
         return http.build();
     }
 
-    // ✅ 配置跨域支持，允许前端携带 Cookie
+    // 配置跨域支持，允许前端携带 Cookie
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // ✅ 前端地址
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // ✅ 允许的请求方法
-        config.setAllowedHeaders(Arrays.asList("*")); // ✅ 允许的请求头
-        config.setAllowCredentials(true); // ✅ 允许携带 Cookie（token、session）
+        config.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // 前端地址
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 允许的请求方法
+        config.setAllowedHeaders(Arrays.asList("*")); // 允许的请求头
+        config.setAllowCredentials(true); // 允许携带 Cookie（token、session）
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config); // ✅ 配置所有路径的跨域规则
+        source.registerCorsConfiguration("/**", config); // 配置所有路径的跨域规则
         return source;
     }
 }

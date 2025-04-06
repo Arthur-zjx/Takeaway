@@ -1,14 +1,21 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// 页面组件
+// 公共页面
 import LoginRegister from '@/views/loginRegister.vue'
-import MainLayout from '@/views/MainLayout.vue'
-import Dashboard from '@/views/Dashboard.vue'
-import Orders from '@/views/Orders.vue'
-import DishManage from '@/views/DishManage.vue'
-import OAuthSuccess from '@/views/OAuthSuccess.vue'  // ✅ 新增：Google 登录成功跳转页
+import OAuthSuccess from '@/views/OAuthSuccess.vue'  // Google 登录成功跳转页
 
-// 路由配置
+// 管理员页面（admin）
+import MainLayout from '@/views/admin/MainLayout.vue'
+import Dashboard from '@/views/admin/Dashboard.vue'
+import Orders from '@/views/admin/Orders.vue'
+import DishManage from '@/views/admin/DishManage.vue'
+
+// 用户页面（user）
+// 请确保在 src/views/user/ 文件夹中创建对应的组件
+import UserMainLayout from '@/views/user/UserMainLayout.vue'
+import UserHome from '@/views/user/UserHome.vue'
+import UserCart from '@/views/user/UserCart.vue'
+
 const routes = [
     {
         path: '/',
@@ -20,9 +27,11 @@ const routes = [
         name: 'OAuthSuccess',
         beforeEnter: (to, from, next) => {
             localStorage.setItem('isLoggedIn', 'true')
+            // 默认登录成功后跳转到管理员首页
             next('/main/dashboard')
         }
     },
+    // 管理员路由配置
     {
         path: '/main',
         component: MainLayout,
@@ -46,18 +55,38 @@ const routes = [
             {
                 path: 'dish/edit/:id?',
                 name: 'DishEdit',
-                component: () => import('@/views/DishEdit.vue')
+                component: () => import('@/views/admin/DishEdit.vue')
             },
             {
                 path: '',
                 redirect: '/main/dashboard'
             }
         ]
+    },
+    // 用户路由配置
+    {
+        path: '/user',
+        component: UserMainLayout,
+        meta: { requiresAuth: true },
+        children: [
+            {
+                path: 'home',
+                name: 'UserHome',
+                component: UserHome
+            },
+            {
+                path: 'cart',
+                name: 'UserCart',
+                component: UserCart
+            },
+            {
+                path: '',
+                redirect: '/user/home'
+            }
+        ]
     }
 ]
 
-
-// 创建 router 实例
 const router = createRouter({
     history: createWebHistory(),
     routes

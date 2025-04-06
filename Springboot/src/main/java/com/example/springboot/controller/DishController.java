@@ -8,7 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RestController
@@ -95,6 +97,17 @@ public class DishController {
     public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
         String imageUrl = s3Service.uploadFile(file);
         return ResponseEntity.ok(imageUrl);
+    }
+
+    // 新增接口：获取菜品统计数据
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Integer>> getDishStats() {
+        int activeCount = dishRepository.countByStatus("available");
+        int inactiveCount = dishRepository.countByStatus("unavailable");
+        Map<String, Integer> stats = new HashMap<>();
+        stats.put("active", activeCount);
+        stats.put("inactive", inactiveCount);
+        return ResponseEntity.ok(stats);
     }
 
 

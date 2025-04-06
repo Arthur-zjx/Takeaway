@@ -25,19 +25,23 @@
         />
       </el-form-item>
       <el-form-item label="Image">
-        <div v-if="dish.imageUrl">
-          <p>Current Image:</p>
-          <img :src="dish.imageUrl" class="preview-img" />
+        <div class="image-upload-container">
+          <div class="current-image" v-if="dish.imageUrl">
+
+            <img :src="dish.imageUrl" class="preview-img" />
+          </div>
+          <div class="upload-button-container">
+            <el-upload
+                :auto-upload="false"
+                :limit="1"
+                :show-file-list="false"
+                accept="image/*"
+                :on-change="handleFileChange"
+            >
+              <el-button type="primary">Select New Image</el-button>
+            </el-upload>
+          </div>
         </div>
-        <el-upload
-            :auto-upload="false"
-            :limit="1"
-            :show-file-list="false"
-            accept="image/*"
-            :on-change="handleFileChange"
-        >
-          <el-button type="primary">Select New Image</el-button>
-        </el-upload>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleSave">Save</el-button>
@@ -57,10 +61,12 @@ const router = useRouter()
 const route = useRoute()
 const dishId = route.params.id
 
-// 判断是否处于编辑模式
+// Determine whether it is edit mode
 const isEditMode = computed(() => !!dishId)
 
-// 初始化 dish 对象，imageUrl 用于展示图片预览，imageFile 用于存储新选中的图片文件
+// Initialize the dish object
+// imageUrl is used to preview the image
+// imageFile is used to store the newly selected file
 const dish = ref({
   name: '',
   price: '',
@@ -71,11 +77,11 @@ const dish = ref({
   imageFile: null
 })
 
-// 若处于编辑模式，则加载已有菜品数据
+// If in edit mode, load the existing dish data
 const fetchDish = async () => {
   try {
     const response = await axios.get(`/api/dish/${dishId}`)
-    // 将返回数据赋值，并清空 imageFile
+    // Assign fetched data and clear imageFile
     dish.value = { ...response.data, imageFile: null }
   } catch (err) {
     console.error('Error fetching dish data:', err)
@@ -89,7 +95,7 @@ onMounted(() => {
   }
 })
 
-// 处理选择图片，并生成本地预览
+// Handle image selection and generate local preview
 const handleFileChange = (file) => {
   dish.value.imageFile = file.raw
   const reader = new FileReader()
@@ -99,22 +105,24 @@ const handleFileChange = (file) => {
   reader.readAsDataURL(file.raw)
 }
 
-// 保存：编辑模式下，如果选了新图片，则先调用上传图片接口，再更新菜品数据
+// Save dish data:
+// In edit mode, if a new image is selected, upload it first, then update the dish
+// In create mode, upload everything in one go
 const handleSave = async () => {
   try {
     if (isEditMode.value) {
       let updatedImageUrl = dish.value.imageUrl
-      // 如果选择了新图片，则先上传图片获取新 URL
+      // If a new image is selected, upload it to get the updated URL
       if (dish.value.imageFile) {
         const formData = new FormData()
         formData.append('file', dish.value.imageFile)
-        // 调用新上传图片接口
+        // Call image upload API
         const res = await axios.post('/api/dish/uploadImage', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
-        updatedImageUrl = res.data // 返回的是图片 URL
+        updatedImageUrl = res.data // the returned S3 URL
       }
-      // 构造更新 payload
+      // Construct the update payload
       const payload = {
         name: dish.value.name,
         price: dish.value.price,
@@ -129,7 +137,7 @@ const handleSave = async () => {
       })
       ElMessage.success('Dish updated successfully!')
     } else {
-      // 新增模式直接调用新增接口（保持原有逻辑）
+      // In create mode, directly call the upload API
       const formData = new FormData()
       if (dish.value.imageFile) {
         formData.append('file', dish.value.imageFile)
@@ -154,14 +162,32 @@ const handleSave = async () => {
 
 
 
+
 <style scoped>
 .edit-dish-container {
   padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.image-upload-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.current-image {
+  text-align: center;
 }
 
 .preview-img {
-  width: 100px;
+  width: 120px;
   border-radius: 6px;
-  margin-bottom: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+}
+
+.upload-button-container {
+  /* 可根据需要调整上传按钮区域的样式 */
 }
 </style>
