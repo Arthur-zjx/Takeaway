@@ -40,6 +40,10 @@
             <el-icon><ForkSpoon /></el-icon>
             <span>Dish Management</span>
           </el-menu-item>
+          <el-menu-item index="/main/settings">
+            <el-icon><Setting /></el-icon>
+            <span>Settings</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
 
@@ -54,7 +58,7 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ArrowDown, House, Document, ForkSpoon } from '@element-plus/icons-vue'
+import {ArrowDown, House, Document, ForkSpoon, Setting} from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 
 const router = useRouter()

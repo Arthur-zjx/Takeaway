@@ -7,6 +7,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
 
-    // 添加 findByEmail 方法
     Optional<User> findByEmail(String email);
+
+    // 新增的方法：检查用户名是否已存在
+    boolean existsByUsername(String username);
 }

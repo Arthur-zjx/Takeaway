@@ -4,17 +4,21 @@ import com.example.springboot.model.User;
 import com.example.springboot.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
 public class AuthService {
+
     @Autowired
     private UserRepository userRepository;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    // 注册用户
     public User register(String username, String email, String password) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new RuntimeException("Username already exists!");
@@ -28,6 +32,7 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+    // 登录用户
     public User login(String username, String password) {
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
@@ -40,5 +45,25 @@ public class AuthService {
         }
 
         return user;
+    }
+
+    public User updateAdminAccount(Long id, String username, String password) {
+        // 根据 id 获取管理员信息
+        User admin = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Admin not found"));
+
+        // 如果新用户名与当前用户名不同，检查新用户名是否已存在
+        if (!admin.getUsername().equals(username)) {
+            if (userRepository.existsByUsername(username)) {
+                throw new RuntimeException("Username is already taken");
+            }
+            admin.setUsername(username);
+        }
+
+        // 设置新密码（加密）
+        admin.setPassword(passwordEncoder.encode(password));
+
+        // 保存更新后的管理员信息
+        return userRepository.save(admin);
     }
 }

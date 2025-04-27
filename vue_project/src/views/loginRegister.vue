@@ -90,33 +90,43 @@ const changeType = () => {
 import { ElMessage } from 'element-plus'  // 确保这一行在你的 <script setup> 中有
 
 const login = async () => {
-  if (form.username && form.userpwd) {
-    try {
-      const res = await axios.post('http://localhost:8080/auth/login', {
-        username: form.username,
-        password: form.userpwd
-      }, {
-        withCredentials: true
-      })
+  if (!form.username || !form.userpwd) {
+    return ElMessage.warning("Username and password cannot be empty!")
+  }
+  try {
+    const res = await axios.post('http://localhost:8080/auth/login', {
+      username: form.username,
+      password: form.userpwd
+    }, { withCredentials: true })
 
-      // ✅ 成功提示
-      ElMessage.success(res.data.message || 'Login successful')
+    console.log('登录返回的数据：', res.data)
+    console.log('role 字段：', res.data.role)
 
-      // ✅ 设置登录状态
-      localStorage.setItem('isLoggedIn', 'true')
+    ElMessage.success(res.data.message || 'Login successful')
 
-      // ✅ 跳转页面
+    localStorage.setItem('isLoggedIn', 'true')
+    localStorage.setItem('username',  form.username)
+    localStorage.setItem('userRole',  res.data.role)
+    localStorage.setItem('userId',    res.data.id)
+
+    // 根据真实的 role 值做判断
+    const rawRole = res.data.role || ''
+    const role = rawRole.replace(/^ROLE_/, '').toUpperCase()
+
+    if (role === 'ADMIN') {
       router.push('/main')
-    } catch (err) {
-      console.error(err)
-      const msg = err.response?.data?.message || 'Login failed'
-      ElMessage.error(msg)
-      passwordError.value = true
+    } else {
+      router.push('/user')
     }
-  } else {
-    ElMessage.warning("Username and password cannot be empty!")
+  } catch (err) {
+    console.error(err)
+    const msg = err.response?.data?.message || 'Login failed'
+    ElMessage.error(msg)
+    passwordError.value = true
   }
 }
+
+
 
 
 const register = async () => {

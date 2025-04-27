@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 // 公共页面
 import LoginRegister from '@/views/loginRegister.vue'
-import OAuthSuccess from '@/views/OAuthSuccess.vue'  // Google 登录成功跳转页
 
 // 管理员页面（admin）
 import MainLayout from '@/views/admin/MainLayout.vue'
@@ -28,7 +27,7 @@ const routes = [
         beforeEnter: (to, from, next) => {
             localStorage.setItem('isLoggedIn', 'true')
             // 默认登录成功后跳转到管理员首页
-            next('/main/dashboard')
+            next('/user')
         }
     },
     // 管理员路由配置
@@ -58,6 +57,11 @@ const routes = [
                 component: () => import('@/views/admin/DishEdit.vue')
             },
             {
+                path: 'settings',
+                name: 'Settings',
+                component: () => import('@/views/admin/Settings.vue')  // 引入 Settings 页面
+            },
+            {
                 path: '',
                 redirect: '/main/dashboard'
             }
@@ -72,12 +76,16 @@ const routes = [
             {
                 path: 'home',
                 name: 'UserHome',
-                component: UserHome
+                component: UserHome,
+                meta: { keepAlive: true }
+
             },
             {
                 path: 'cart',
                 name: 'UserCart',
-                component: UserCart
+                component: UserCart,
+                meta: { keepAlive: true }
+
             },
             {
                 path: '',

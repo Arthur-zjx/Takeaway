@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
 import axios from 'axios'
 import router from "@/router/index.js";
@@ -6,6 +7,8 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 
 const app = createApp(App)
+
+app.use(createPinia()) //calculating the cart price
 
 // ✅ 添加这行：允许 axios 发送 cookie
 axios.defaults.withCredentials = true
