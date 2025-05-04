@@ -55,10 +55,10 @@ const orderList = ref([
     phone: '1234567890',
     address: '123 Apple Street',
     status: 'pending',
-    total: '¥154',
+    total: '$154',
     dishes: [
-      { name: 'Spicy Fish', quantity: 1, price: '¥58.00' },
-      { name: 'Beef Stew', quantity: 1, price: '¥88.00' }
+      { name: 'Spicy Fish', quantity: 1, price: '$58.00' },
+      { name: 'Beef Stew', quantity: 1, price: '$88.00' }
     ]
   }
 ])

@@ -46,10 +46,10 @@ import axios from 'axios'
 const router = useRouter()
 
 const overviewStats = [
-  {label: 'Turnover', value: '¥198'},
+  {label: 'Turnover', value: '$198'},
   {label: 'Valid Orders', value: 3},
   {label: 'Completion Rate', value: '100%'},
-  {label: 'Avg Order Price', value: '¥66'}
+  {label: 'Avg Order Price', value: '$66'}
 ]
 
 // dishStats 将由 API 动态赋值

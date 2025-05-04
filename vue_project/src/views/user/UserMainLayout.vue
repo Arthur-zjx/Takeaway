@@ -38,6 +38,10 @@
             <el-icon><ShoppingCart /></el-icon>
             <span slot="title">Cart</span>
           </el-menu-item>
+          <el-menu-item index="/user/orders">
+            <el-icon><Document /></el-icon>
+            <span slot="title">My Orders</span>
+          </el-menu-item>
         </el-menu>
       </aside>
 
@@ -52,7 +56,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { House, ShoppingCart, ArrowDown } from '@element-plus/icons-vue'
+import { House, ShoppingCart, Document, ArrowDown } from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus'
 
 const router = useRouter()
@@ -86,13 +90,8 @@ const logout = async () => {
 </script>
 
 <style scoped>
-.user-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
+.user-layout { display: flex; flex-direction: column; height: 100vh; }
 
-/* 顶部栏：渐变绿色背景 */
 .header-bar {
   height: 60px;
   background: linear-gradient(to right, #2dbf8e, #4ae0c3);
@@ -102,33 +101,16 @@ const logout = async () => {
   justify-content: space-between;
   padding: 0 20px;
 }
+.header-left h2 { margin: 0; }
+.header-right { display: flex; align-items: center; }
 
-.header-left h2 {
-  margin: 0;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-/* 主体布局：左侧菜单 + 右侧内容 */
-.body-wrapper {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
+.body-wrapper { display: flex; flex: 1; overflow: hidden; }
 .sidebar {
   width: 220px;
-  background-color: #2d3a4b; /* 与 admin 相同的深色 */
+  background-color: #2d3a4b;
   padding-top: 20px;
 }
-
-.menu {
-  border-right: none;
-}
-
+.menu { border-right: none; }
 .content {
   flex: 1;
   background-color: #f0f2f5;

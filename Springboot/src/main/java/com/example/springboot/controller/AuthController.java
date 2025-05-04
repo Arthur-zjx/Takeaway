@@ -1,10 +1,14 @@
 package com.example.springboot.controller;
 
+import com.example.springboot.config.JwtUtils;
 import com.example.springboot.model.User;
 import com.example.springboot.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -12,11 +16,18 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:5173")  // 允许前端跨域并携带 cookie
+@CrossOrigin(origins = "http://localhost:5173")  // 允许前端跨域
 public class AuthController {
 
+    private final AuthService authService;
+    private final AuthenticationManager authManager;
+
     @Autowired
-    private AuthService authService;
+    public AuthController(AuthService authService,
+                          AuthenticationManager authManager) {
+        this.authService   = authService;
+        this.authManager   = authManager;
+    }
 
     // 注册接口
     @PostMapping("/register")
@@ -27,11 +38,7 @@ public class AuthController {
                     payload.get("email"),
                     payload.get("password")
             );
-
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Registration successful!");
-            return ResponseEntity.ok(response);
-
+            return ResponseEntity.ok(Map.of("message", "Registration successful!"));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
@@ -39,22 +46,44 @@ public class AuthController {
         }
     }
 
-    // 登录接口：返回 id、username、role
+    // 登录接口：返回 token、id、username、role、message
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> payload) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> creds) {
         try {
-            User user = authService.login(
-                    payload.get("username"),
-                    payload.get("password")
+            // 1. Spring Security 验证用户名/密码
+            Authentication auth = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            creds.get("username"),
+                            creds.get("password")
+                    )
             );
 
-            Map<String, String> response = new HashMap<>();
-            response.put("message",  "Login successful!");
-            response.put("id",       user.getId().toString());    // 新增：把用户 ID 放进来
-            response.put("username", user.getUsername());
-            response.put("role",     user.getRole());
+            // 2. 加载完整的 User 对象
+            User user = authService.login(
+                    creds.get("username"),
+                    creds.get("password")
+            );
 
-            return ResponseEntity.ok(response);
+            // 3. 从 Authentication 拿到角色并去除前缀
+            String role = auth.getAuthorities()
+                    .iterator()
+                    .next()
+                    .getAuthority()
+                    .replace("ROLE_", "");
+
+            // 4. 静态生成 JWT
+            String token = JwtUtils.generateToken(user.getUsername(), role);
+
+            // 5. 构建返回体
+            Map<String, String> resp = new HashMap<>();
+            resp.put("token",    token);
+            resp.put("id",       user.getId().toString());
+            resp.put("username", user.getUsername());
+            resp.put("role",     role);
+            resp.put("message",  "Login successful!");
+
+            return ResponseEntity.ok(resp);
+
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
@@ -62,17 +91,18 @@ public class AuthController {
         }
     }
 
-    // 管理员账号更新接口（仅 ROLE_ADMIN 可访问，需在 SecurityConfig 中配置）
+    // 管理员账号更新接口
     @PutMapping("/update-admin/{id}")
     public ResponseEntity<?> updateAdminAccount(
             @PathVariable Long id,
-            @RequestBody Map<String, String> payload) {
+            @RequestBody Map<String, String> payload
+    ) {
         try {
-            String username = payload.get("username");
-            String password = payload.get("password");
-
-            authService.updateAdminAccount(id, username, password);
-
+            authService.updateAdminAccount(
+                    id,
+                    payload.get("username"),
+                    payload.get("password")
+            );
             return ResponseEntity.ok(Map.of("message", "Account updated successfully!"));
         } catch (Exception e) {
             return ResponseEntity
@@ -81,7 +111,7 @@ public class AuthController {
         }
     }
 
-    // 可选：登出接口（前端也可直接调用 /logout，由 Spring Security 处理）
+    // 登出接口（可选，Spring Security 自带 /logout 也可用）
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         return ResponseEntity.ok(Map.of("message", "Logout successful"));

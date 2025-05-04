@@ -62,11 +62,12 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router' // ✅ 加入这个
+import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
-const router = useRouter() // ✅ 创建 router 实例
-const isLogin = ref(false)
+const router = useRouter()
+const isLogin = ref(true)
 const emailError = ref(false)
 const passwordError = ref(false)
 const existed = ref(false)
@@ -87,78 +88,79 @@ const changeType = () => {
   existed.value = false
 }
 
-import { ElMessage } from 'element-plus'  // 确保这一行在你的 <script setup> 中有
-
 const login = async () => {
   if (!form.username || !form.userpwd) {
-    return ElMessage.warning("Username and password cannot be empty!")
+    return ElMessage.warning('Username and password are required!')
   }
+
+  // 1. Try admin login
   try {
-    const res = await axios.post('http://localhost:8080/auth/login', {
-      username: form.username,
-      password: form.userpwd
-    }, { withCredentials: true })
-
-    console.log('登录返回的数据：', res.data)
-    console.log('role 字段：', res.data.role)
-
-    ElMessage.success(res.data.message || 'Login successful')
-
-    localStorage.setItem('isLoggedIn', 'true')
-    localStorage.setItem('username',  form.username)
-    localStorage.setItem('userRole',  res.data.role)
-    localStorage.setItem('userId',    res.data.id)
-
-    // 根据真实的 role 值做判断
-    const rawRole = res.data.role || ''
-    const role = rawRole.replace(/^ROLE_/, '').toUpperCase()
-
+    const resAdmin = await axios.post(
+        '/api/admin/login',
+        { username: form.username, password: form.userpwd }
+    )
+    const { token, role } = resAdmin.data
     if (role === 'ADMIN') {
-      router.push('/main')
-    } else {
-      router.push('/user')
+      sessionStorage.setItem('ADMIN_TOKEN', token)
+      ElMessage.success('Admin login successful!')
+      return router.push({ name: 'Dashboard' })
     }
   } catch (err) {
+    if (err.response?.status !== 401) {
+      console.error(err)
+      return ElMessage.error('Admin login error')
+    }
+  }
+
+  // 2. Regular user login
+  try {
+    const resUser = await axios.post(
+        '/auth/login',
+        { username: form.username, password: form.userpwd }
+    )
+    const userToken = resUser.data.token
+    // store user JWT
+    localStorage.setItem('userToken', userToken)
+    localStorage.setItem('isLoggedIn', 'true')
+    localStorage.setItem('username', resUser.data.username)
+    localStorage.setItem('userRole', resUser.data.role)
+    localStorage.setItem('userId', resUser.data.id)
+
+    ElMessage.success(resUser.data.message || 'Login successful!')
+    return router.push({ name: 'UserHome' })
+  } catch (err) {
     console.error(err)
-    const msg = err.response?.data?.message || 'Login failed'
-    ElMessage.error(msg)
     passwordError.value = true
+    ElMessage.error(err.response?.data?.error || 'Login failed')
   }
 }
-
-
-
 
 const register = async () => {
   if (form.username && form.useremail && form.userpwd) {
     try {
-      const res = await axios.post('http://localhost:8080/auth/register', {
-        username: form.username,
-        email: form.useremail,
-        password: form.userpwd
-      }, {
-        withCredentials: true
-      })
-
+      const res = await axios.post(
+          '/auth/register',
+          { username: form.username, email: form.useremail, password: form.userpwd }
+      )
       ElMessage.success(res.data.message || 'Registration successful!')
       changeType()
     } catch (err) {
       console.error(err)
-      const msg = err.response?.data?.error || 'Registration failed'
-      ElMessage.error(msg)
       existed.value = true
+      ElMessage.error(err.response?.data?.error || 'Registration failed')
     }
   } else {
-    ElMessage.warning("All fields are required!")
+    ElMessage.warning('All fields must be filled!')
   }
 }
 
-
-// ✅ Google 登录跳转
+// Google login redirect
 const googleLogin = () => {
   window.location.href = 'http://localhost:8080/oauth2/authorization/google'
 }
 </script>
+
+
 
 
 

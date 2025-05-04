@@ -10,7 +10,7 @@
         <img :src="dish.imageUrl" alt="Dish Image" class="card-image" />
         <div class="card-body">
           <p class="card-name">{{ dish.name }}</p>
-          <p class="card-price">¥{{ dish.price }}</p>
+          <p class="card-price">${{ dish.price }}</p>
           <el-button type="primary" @click="addToCart(dish)">
             Add to Cart
           </el-button>
