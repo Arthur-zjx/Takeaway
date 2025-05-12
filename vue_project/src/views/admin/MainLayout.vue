@@ -1,7 +1,9 @@
 <template>
   <el-container style="height: 100vh;">
     <!-- Top Bar -->
-    <el-header style="background: linear-gradient(135deg, rgb(57, 167, 176), rgb(56, 183, 145)); color: white; display: flex; justify-content: space-between; align-items: center;">
+    <el-header
+        style="background: linear-gradient(135deg, rgb(57, 167, 176), rgb(56, 183, 145)); color: white; display: flex; justify-content: space-between; align-items: center;"
+    >
       <div style="font-size: 20px; font-weight: bold;">Takeaway Admin Panel</div>
       <div>
         <el-dropdown>
@@ -58,22 +60,25 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import {ArrowDown, House, Document, ForkSpoon, Setting} from '@element-plus/icons-vue'
-import { ElMessageBox } from 'element-plus'
+import { ArrowDown, House, Document, ForkSpoon, Setting } from '@element-plus/icons-vue'
+import { ElMessageBox, ElNotification } from 'element-plus'
+import { Client } from '@stomp/stompjs'
 
 const router = useRouter()
 const route = useRoute()
 
+// 当前激活的侧边栏菜单
 const activeMenu = ref(route.path)
-
-watch(() => route.path, (newPath) => {
+watch(() => route.path, newPath => {
   activeMenu.value = newPath
 })
 
-const handleSelect = (index) => {
+// 菜单选择跳转
+const handleSelect = index => {
   router.push(index)
 }
 
+// 退出登录
 const logout = async () => {
   try {
     await ElMessageBox.confirm(
@@ -85,35 +90,49 @@ const logout = async () => {
           type: 'warning',
         }
     )
-    console.log("用户确认退出")
-
     const response = await fetch('http://localhost:8080/logout', {
       method: 'POST',
       credentials: 'include'
     })
-    console.log("退出请求返回：", response)
-
-    if (!response.ok) {
-      console.error("退出接口请求失败", response)
-      throw new Error("Logout failed")
-    }
-
+    if (!response.ok) throw new Error('Logout failed')
     localStorage.removeItem('isLoggedIn')
     router.push('/')
   } catch (error) {
-    console.error("退出操作出错：", error)
+    console.error('退出操作出错：', error)
   }
 }
 
 onMounted(() => {
-  const oauthSuccess = route.query.oauthSuccess
-  if (oauthSuccess === 'true') {
+  // Google OAuth 成功后跳转
+  if (route.query.oauthSuccess === 'true') {
     localStorage.setItem('isLoggedIn', 'true')
     router.replace('/main/dashboard')
   }
+
+  // —— 使用原生 WebSocket （方案 B） ——
+  const stompClient = new Client({
+    // 对应 Spring Boot 原生 WS 端点
+    brokerURL: 'ws://localhost:8080/ws',
+    reconnectDelay: 5000,
+  })
+
+  stompClient.onConnect = () => {
+    stompClient.subscribe('/topic/orders', msg => {
+      const order = JSON.parse(msg.body)
+      ElNotification({
+        title: 'New Order',
+        message: `订单 #${order.id}，用户：${order.customerName}`,
+        duration: 0, // 持续显示，直到用户点击或手动关闭
+        onClick: () => {
+          router.push(`/main/orders/${order.id}`)
+        }
+      })
+    })
+  }
+
+  stompClient.activate()
 })
 </script>
-
 
 <style scoped>
 .el-menu-item {

@@ -6,6 +6,7 @@ import com.example.springboot.payload.OrderDto;
 import com.example.springboot.payload.OrderItemDto;
 import com.example.springboot.payload.OrderRequest;
 import com.example.springboot.repository.OrderRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,14 +17,17 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final SimpMessagingTemplate broker;  // 注入消息模板
 
-    // 构造器注入
-    public OrderService(OrderRepository orderRepository) {
+    // 构造器注入 OrderRepository 和 SimpMessagingTemplate
+    public OrderService(OrderRepository orderRepository,
+                        SimpMessagingTemplate broker) {
         this.orderRepository = orderRepository;
+        this.broker = broker;
     }
 
     /**
-     * 用户下单：保存订单并返回 DTO 给前端
+     * 用户下单：保存订单并返回 DTO 给前端，同时推送到 /topic/orders
      */
     @Transactional
     public OrderDto saveOrder(OrderRequest req) {
@@ -46,7 +50,12 @@ public class OrderService {
         order.setDishes(items);
 
         Order saved = orderRepository.save(order);
-        return toDto(saved);
+        OrderDto dto = toDto(saved);
+
+        // 推送新订单
+        broker.convertAndSend("/topic/orders", dto);
+
+        return dto;
     }
 
     /**
@@ -60,7 +69,25 @@ public class OrderService {
     }
 
     /**
-     * 用户端：查询某个用户的订单（用户名作为示例）
+     * 管理端：更新订单状态，并推送变更到 /topic/orders
+     */
+    @Transactional
+    public OrderDto updateStatus(Long orderId, String newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+
+        order.setStatus(newStatus);
+        Order saved = orderRepository.save(order);
+        OrderDto dto = toDto(saved);
+
+        // 推送状态更新
+        broker.convertAndSend("/topic/orders", dto);
+
+        return dto;
+    }
+
+    /**
+     * 用户端：查询某个用户的订单
      */
     @Transactional(readOnly = true)
     public List<OrderDto> findByUsername(String username) {
@@ -80,7 +107,6 @@ public class OrderService {
     }
 
     // --- 私有映射方法 ---
-
     private OrderDto toDto(Order order) {
         OrderDto dto = new OrderDto();
         dto.setId(order.getId());

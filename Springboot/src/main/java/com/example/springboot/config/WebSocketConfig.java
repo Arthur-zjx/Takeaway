@@ -9,19 +9,20 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry config) {
-        // 客户端订阅地址前缀
-        config.enableSimpleBroker("/topic");
-        // 客户端发送到服务端的前缀
-        config.setApplicationDestinationPrefixes("/app");
-    }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // 建立 WebSocket 连接的端点，并允许 SockJS 回退
-        registry.addEndpoint("/ws-orders")
-                .setAllowedOriginPatterns("*")
+        // 客户端用 SockJS 连接到 /ws/orders
+        registry.addEndpoint("/ws/orders")
+                .setAllowedOrigins("http://localhost:5173") // 前端地址
                 .withSockJS();
+    }
+
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry registry) {
+        // 客户端订阅前缀
+        registry.enableSimpleBroker("/topic");
+        // 客户端发送消息前缀（如果需要）
+        registry.setApplicationDestinationPrefixes("/app");
     }
 }

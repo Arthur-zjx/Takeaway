@@ -1,119 +1,98 @@
 <template>
-  <div class="order-container">
-    <h2 class="page-title">Order Management</h2>
+  <div class="orders-page" style="padding: 1rem;">
+    <el-card>
+      <h2>Orders</h2>
+      <el-table
+          v-if="orders.length"
+          :data="orders"
+          stripe
+          style="width: 100%; margin-top: 20px"
+          v-loading="loading"
+          element-loading-text="Loading orders..."
+      >
+        <el-table-column prop="id" label="Order ID" width="180" />
+        <el-table-column prop="username" label="Customer" width="120" />
+        <el-table-column prop="phone" label="Phone" width="120" />
+        <el-table-column prop="address" label="Address" />
+        <el-table-column prop="status" label="Status" width="120">
+          <template #default="{ row }">
+            <el-tag :type="getStatusType(row.status)">
+              {{ getStatusText(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="total" label="Total" width="100" />
+        <el-table-column label="Actions" width="120">
+          <template #default="{ row }">
+            <el-button size="small" type="primary" @click="viewOrder(row.id)">
+              View
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <!-- Table displaying orders -->
-    <el-table :data="orderList" border style="width: 100%">
-      <el-table-column prop="id" label="Order ID" width="180" />
-      <el-table-column prop="username" label="Customer" width="120" />
-      <el-table-column prop="phone" label="Phone" width="120" />
-      <el-table-column prop="address" label="Address" />
-      <el-table-column prop="status" label="Status" width="120">
-        <template #default="scope">
-          <el-tag :type="getStatusType(scope.row.status)">
-            {{ getStatusText(scope.row.status) }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="total" label="Total" width="100" />
-      <el-table-column label="Actions" width="120">
-        <template #default="scope">
-          <el-button size="small" @click="viewOrder(scope.row)">View</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <!-- Order Detail Dialog -->
-    <el-dialog v-model="dialogVisible" title="Order Detail" width="500px">
-      <p><strong>Order ID:</strong> {{ selectedOrder.id }}</p>
-      <p><strong>Customer:</strong> {{ selectedOrder.username }}</p>
-      <p><strong>Phone:</strong> {{ selectedOrder.phone }}</p>
-      <p><strong>Address:</strong> {{ selectedOrder.address }}</p>
-      <p><strong>Status:</strong> {{ getStatusText(selectedOrder.status) }}</p>
-      <p><strong>Total:</strong> {{ selectedOrder.total }}</p>
-      <p><strong>Dishes:</strong></p>
-      <ul>
-        <li v-for="(dish, index) in selectedOrder.dishes" :key="index">
-          {{ dish.name }} x {{ dish.quantity }} - {{ dish.price }}
-        </li>
-      </ul>
-      <template #footer>
-        <el-button @click="dialogVisible = false">Close</el-button>
-      </template>
-    </el-dialog>
+      <p v-else style="margin-top: 20px;">No orders yet.</p>
+    </el-card>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElNotification } from 'element-plus'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
-const orderList = ref([
-  {
-    id: '1663672489663',
-    username: 'John Doe',
-    phone: '1234567890',
-    address: '123 Apple Street',
-    status: 'pending',
-    total: '$154',
-    dishes: [
-      { name: 'Spicy Fish', quantity: 1, price: '$58.00' },
-      { name: 'Beef Stew', quantity: 1, price: '$88.00' }
-    ]
+const router = useRouter()
+const orders = ref([])
+const loading = ref(false)
+
+const fetchOrders = async () => {
+  loading.value = true
+  try {
+    const { data } = await axios.get('/api/admin/orders')
+    orders.value = data
+  } catch (err) {
+    console.error(err)
+    ElMessage.error('获取订单列表失败')
+  } finally {
+    loading.value = false
   }
-])
+}
 
-const dialogVisible = ref(false)
-const selectedOrder = ref({})
-
-function viewOrder(order) {
-  selectedOrder.value = order
-  dialogVisible.value = true
+const viewOrder = (id) => {
+  // 真正走路由跳转，卸载当前组件
+  router.push(`/main/orders/${id}`)
 }
 
 function getStatusText(status) {
   switch (status) {
-    case 'pending': return 'Pending'
+    case 'pending':   return 'Pending'
     case 'confirmed': return 'Confirmed'
+    case 'cooking':   return 'Cooking'
     case 'delivered': return 'Delivered'
-    case 'canceled': return 'Canceled'
-    default: return 'Unknown'
+    case 'canceled':  return 'Canceled'
+    default:          return status
   }
 }
 
 function getStatusType(status) {
   switch (status) {
-    case 'pending': return 'warning'
+    case 'pending':   return 'warning'
     case 'confirmed': return 'success'
-    case 'delivered': return ''
-    case 'canceled': return 'info'
-    default: return ''
+    case 'cooking':   return ''
+    case 'delivered': return 'info'
+    case 'canceled':  return 'danger'
+    default:          return ''
   }
 }
 
-// onMounted(() => {
-//   // 模拟5秒后收到新订单
-//   setTimeout(() => {
-//     ElNotification({
-//       title: 'New Order',
-//       message: 'You have 1 new order pending. Click to view.',
-//       type: 'warning',
-//       duration: 0,
-//       onClick: () => {
-//         viewOrder(orderList.value[0])
-//       }
-//     })
-//   }, 5000)
-// })
+onMounted(fetchOrders)
 </script>
 
 <style scoped>
-.order-container {
+.orders-page {
+  max-width: 1000px;
+  margin: 0 auto;
   padding: 20px;
-}
-.page-title {
-  font-size: 22px;
-  font-weight: bold;
-  margin-bottom: 20px;
 }
 </style>

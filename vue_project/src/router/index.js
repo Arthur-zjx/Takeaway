@@ -8,6 +8,7 @@ import MainLayout       from '@/views/admin/MainLayout.vue'
 import Dashboard        from '@/views/admin/Dashboard.vue'
 import Orders           from '@/views/admin/Orders.vue'
 import DishManage       from '@/views/admin/DishManage.vue'
+import OrderDetail      from '@/views/admin/OrderDetail.vue'
 
 // 用户页面（user）
 import UserMainLayout   from '@/views/user/UserMainLayout.vue'
@@ -36,6 +37,7 @@ const routes = [
         children: [
             { path: 'dashboard', name: 'Dashboard',  component: Dashboard },
             { path: 'orders',    name: 'Orders',     component: Orders },
+            { path: 'orders/:id', name: 'OrderDetail', component: () => import('@/views/admin/OrderDetail.vue'), props: true },
             { path: 'dish',      name: 'DishManage', component: DishManage },
             { path: 'dish/edit/:id?', name: 'DishEdit', component: () => import('@/views/admin/DishEdit.vue') },
             { path: 'settings',  name: 'Settings',   component: () => import('@/views/admin/Settings.vue') },
