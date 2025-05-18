@@ -1,3 +1,12 @@
+// src/main.js
+
+// —— Polyfill for global ——
+if (typeof global === 'undefined') {
+    // @ts-ignore
+    window.global = window
+}
+// —— End Polyfill ——
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'

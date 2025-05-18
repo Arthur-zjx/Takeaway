@@ -57,12 +57,15 @@
   </el-container>
 </template>
 
+
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ArrowDown, House, Document, ForkSpoon, Setting } from '@element-plus/icons-vue'
 import { ElMessageBox, ElNotification } from 'element-plus'
+import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
+import axios from 'axios'
 
 const router = useRouter()
 const route = useRoute()
@@ -82,13 +85,9 @@ const handleSelect = index => {
 const logout = async () => {
   try {
     await ElMessageBox.confirm(
-        '你确定要退出登录吗？',
-        '提示',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning',
-        }
+        'Are you sure you want to log out?',
+        'Warning',
+        { confirmButtonText: 'Yes', cancelButtonText: 'No', type: 'warning' }
     )
     const response = await fetch('http://localhost:8080/logout', {
       method: 'POST',
@@ -97,42 +96,66 @@ const logout = async () => {
     if (!response.ok) throw new Error('Logout failed')
     localStorage.removeItem('isLoggedIn')
     router.push('/')
-  } catch (error) {
-    console.error('退出操作出错：', error)
+  } catch (err) {
+    console.error('Logout error:', err)
   }
 }
 
-onMounted(() => {
-  // Google OAuth 成功后跳转
+onMounted(async () => {
+  // OAuth callback
   if (route.query.oauthSuccess === 'true') {
     localStorage.setItem('isLoggedIn', 'true')
     router.replace('/main/dashboard')
   }
 
-  // —— 使用原生 WebSocket （方案 B） ——
+  // 1. 预加载现有订单状态到 Map，防止状态更新被当做新订单
+  const orderStatusMap = new Map()
+  try {
+    const { data: orders } = await axios.get('/api/admin/orders', { withCredentials: true })
+    orders.forEach(o => orderStatusMap.set(o.id, o.status))
+  } catch (err) {
+    console.error('Failed to preload orders for status map', err)
+  }
+
+  // 2. 建立 STOMP over SockJS 连接并订阅
   const stompClient = new Client({
-    // 对应 Spring Boot 原生 WS 端点
-    brokerURL: 'ws://localhost:8080/ws',
+    webSocketFactory: () => new SockJS('/ws/orders'),
     reconnectDelay: 5000,
+    debug: msg => console.log('[STOMP]', msg)
   })
 
   stompClient.onConnect = () => {
     stompClient.subscribe('/topic/orders', msg => {
       const order = JSON.parse(msg.body)
-      ElNotification({
-        title: 'New Order',
-        message: `订单 #${order.id}，用户：${order.customerName}`,
-        duration: 0, // 持续显示，直到用户点击或手动关闭
-        onClick: () => {
-          router.push(`/main/orders/${order.id}`)
-        }
-      })
+      const prevStatus = orderStatusMap.get(order.id)
+
+      if (prevStatus == null) {
+        // 真·新订单通知：duration 设置为 0，永不自动关闭
+        ElNotification({
+          title: 'New Order',
+          message: `Order #${order.id}, Customer: ${order.username}`,
+          duration: 0,
+          onClick: () => router.push(`/main/orders/${order.id}`)
+        })
+      } else if (prevStatus !== order.status) {
+        // 状态变更通知：3 秒后自动关闭
+        ElNotification({
+          title: 'Order Updated',
+          message: `Order #${order.id} is now ${order.status}`,
+          duration: 3000,  // 3000ms = 3s
+          onClick: () => router.push(`/main/orders/${order.id}`)
+        })
+      }
+      // 相同状态不再通知
     })
   }
 
   stompClient.activate()
 })
 </script>
+
+
+
 
 <style scoped>
 .el-menu-item {

@@ -11,11 +11,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-public class OrderController {
+public class UserOrderController {
 
     private final OrderService orderService;
 
-    public OrderController(OrderService orderService) {
+    public UserOrderController(OrderService orderService) {
         this.orderService = orderService;
     }
 

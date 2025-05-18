@@ -7,6 +7,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -47,21 +48,22 @@ public class AuthService {
         return user;
     }
 
+    @Transactional
     public User updateAdminAccount(Long id, String username, String password) {
-        // 根据 id 获取管理员信息
         User admin = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Admin not found"));
 
-        // 如果新用户名与当前用户名不同，检查新用户名是否已存在
-        if (!admin.getUsername().equals(username)) {
-            if (userRepository.existsByUsername(username)) {
-                throw new RuntimeException("Username is already taken");
-            }
-            admin.setUsername(username);
+        // 如果用户名 changed，检查是否重复
+        if (!admin.getUsername().equals(username)
+                && userRepository.findByUsername(username).isPresent()) {
+            throw new RuntimeException("Username is already taken");
         }
+        admin.setUsername(username);
 
-        // 设置新密码（加密）
-        admin.setPassword(passwordEncoder.encode(password));
+        // 如果前端传了非空密码，就更新
+        if (password != null && !password.isBlank()) {
+            admin.setPassword(passwordEncoder.encode(password));
+        }
 
         // 保存更新后的管理员信息
         return userRepository.save(admin);

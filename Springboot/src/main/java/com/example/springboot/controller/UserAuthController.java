@@ -17,14 +17,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = "http://localhost:5173")  // 允许前端跨域
-public class AuthController {
+public class UserAuthController {
 
     private final AuthService authService;
     private final AuthenticationManager authManager;
 
     @Autowired
-    public AuthController(AuthService authService,
-                          AuthenticationManager authManager) {
+    public UserAuthController(AuthService authService,
+                              AuthenticationManager authManager) {
         this.authService   = authService;
         this.authManager   = authManager;
     }

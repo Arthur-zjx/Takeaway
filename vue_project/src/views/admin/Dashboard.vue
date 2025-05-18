@@ -15,13 +15,13 @@
       <el-col :span="6">
         <el-card class="stat-card clickable" @click="goToDishes">
           <p class="label">Active Dishes</p>
-          <p class="value">{{ dishStats.active !== null ? dishStats.active : 'empty' }}</p>
+          <p class="value">{{ dishStats.active !== null ? dishStats.active : '—' }}</p>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card class="stat-card clickable" @click="goToDishes">
           <p class="label">Inactive Dishes</p>
-          <p class="value">{{ dishStats.inactive !== null ? dishStats.inactive : 'empty' }}</p>
+          <p class="value">{{ dishStats.inactive !== null ? dishStats.inactive : '—' }}</p>
         </el-card>
       </el-col>
     </el-row>
@@ -39,32 +39,16 @@
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue'
-import {useRouter} from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
 
-const overviewStats = [
-  {label: 'Turnover', value: '$198'},
-  {label: 'Valid Orders', value: 3},
-  {label: 'Completion Rate', value: '100%'},
-  {label: 'Avg Order Price', value: '$66'}
-]
-
-// dishStats 将由 API 动态赋值
-const dishStats = ref({
-  active: null,
-  inactive: null
-})
-
-const orderStats = [
-  {label: 'Pending', value: 2, status: 2},
-  {label: 'To be Delivered', value: 1, status: 3},
-  {label: 'Completed', value: 5, status: 5},
-  {label: 'Cancelled', value: 1, status: 6},
-  {label: 'All Orders', value: 9, status: 0}
-]
+// Reactive stats
+const overviewStats = ref([])
+const dishStats = ref({ active: null, inactive: null })
+const orderStats = ref([])
 
 function goToOrders(status) {
   router.push(`/main/orders?status=${status}`)
@@ -74,20 +58,49 @@ function goToDishes() {
   router.push('/main/dish')
 }
 
-// 获取真实的菜品统计数据
-const fetchDishStats = async () => {
+async function fetchStats() {
   try {
-    // 假设后端接口为 /api/dish/stats 返回 { active: number, inactive: number }
-    const response = await axios.get('/api/dish/stats')
-    dishStats.value = response.data
-  } catch (error) {
-    console.error('Error fetching dish stats:', error)
+    // 获取订单列表
+    const { data: orders } = await axios.get('/api/admin/orders', { withCredentials: true })
+
+    // 计算订单统计
+    const totalOrders = orders.length
+    const pendingCount = orders.filter(o => o.status === 'pending').length
+    const cookingCount = orders.filter(o => o.status === 'cooking').length
+    const deliveringCount = orders.filter(o => o.status === 'delivering').length
+    const completedCount = orders.filter(o => o.status === 'completed').length
+    const canceledCount = orders.filter(o => o.status === 'canceled').length
+
+    // 计算业绩统计
+    const turnover = orders.reduce((sum, o) => sum + (o.total || 0), 0)
+    const avgPrice = totalOrders > 0 ? (turnover / totalOrders).toFixed(2) : '0.00'
+    const completionRate = totalOrders > 0 ? ((completedCount / totalOrders) * 100).toFixed(0) + '%' : '0%'
+
+    overviewStats.value = [
+      { label: 'Turnover', value: `$${turnover.toFixed(2)}` },
+      { label: 'Valid Orders', value: totalOrders },
+      { label: 'Completion Rate', value: completionRate },
+      { label: 'Avg Order Price', value: `$${avgPrice}` }
+    ]
+
+    orderStats.value = [
+      { label: 'Pending', value: pendingCount, status: 'pending' },
+      { label: 'Cooking', value: cookingCount, status: 'cooking' },
+      { label: 'Delivering', value: deliveringCount, status: 'delivering' },
+      { label: 'Completed', value: completedCount, status: 'completed' },
+      { label: 'Cancelled', value: canceledCount, status: 'canceled' },
+      { label: 'All Orders', value: totalOrders, status: '' }
+    ]
+
+    // 获取菜品统计
+    const { data: ds } = await axios.get('/api/dish/stats', { withCredentials: true })
+    dishStats.value = ds
+  } catch (err) {
+    console.error('Error fetching stats:', err)
   }
 }
 
-onMounted(() => {
-  fetchDishStats()
-})
+onMounted(fetchStats)
 </script>
 
 <style scoped>

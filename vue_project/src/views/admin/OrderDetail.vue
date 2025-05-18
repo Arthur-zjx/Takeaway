@@ -11,41 +11,64 @@
         </el-tag>
       </p>
 
-      <el-table :data="order.dishes" stripe style="margin: 1em 0;">
+      <el-table
+          v-if="order.dishes && order.dishes.length"
+          :data="order.dishes"
+          stripe
+          style="margin: 1em 0;"
+      >
         <el-table-column prop="name" label="Dish" />
         <el-table-column prop="quantity" label="Quantity" width="80" />
         <el-table-column prop="price" label="Price" width="100" />
         <el-table-column
             label="Subtotal"
-            :formatter="({ row }) => (row.quantity * row.price).toFixed(2)"
+            :formatter="({ row }) => {
+            if (!row || typeof row.quantity !== 'number' || typeof row.price !== 'number') {
+              return ''
+            }
+            return (row.quantity * row.price).toFixed(2)
+          }"
         />
       </el-table>
 
-      <p class="total-price"><strong>Total:</strong> ¥{{ totalPrice }}</p>
+      <p class="total-price"><strong>Total:</strong> ${{ totalPrice }}</p>
 
       <div class="button-group">
+        <!-- Pending: Accept or Reject -->
         <el-button
+            v-if="order.status === 'pending'"
             type="success"
-            :disabled="order.status !== 'pending'"
             @click="handleChangeStatus('cooking')"
         >
           Accept
         </el-button>
         <el-button
+            v-if="order.status === 'pending'"
             type="danger"
-            :disabled="order.status !== 'pending'"
             @click="handleChangeStatus('canceled')"
         >
           Reject
         </el-button>
+
+        <!-- Cooking: Start Delivery -->
         <el-button
-            type="warning"
             v-if="order.status === 'cooking'"
-            @click="handleChangeStatus('delivered')"
+            type="warning"
+            @click="handleChangeStatus('delivering')"
         >
-          Mark as Delivered
+          Start Delivery
         </el-button>
-        <!-- 用 goBack() 明确跳回列表 -->
+
+        <!-- Delivering: Complete Order -->
+        <el-button
+            v-if="order.status === 'delivering'"
+            type="primary"
+            @click="handleChangeStatus('completed')"
+        >
+          Complete Order
+        </el-button>
+
+        <!-- Always available -->
         <el-button @click="goBack">Cancel</el-button>
       </div>
     </el-card>
@@ -66,10 +89,11 @@ const orderId = Number(route.params.id)
 
 const order = ref(null)
 
-const fetchOrder = async () => {
+async function fetchOrder() {
   try {
-    const { data } = await axios.get('/api/admin/orders')
+    const { data } = await axios.get('/api/admin/orders', { withCredentials: true })
     const found = data.find(o => o.id === orderId)
+    console.log('🏷️ [OrderDetail] raw order data:', found)
     if (!found) throw new Error('Order not found')
     order.value = found
   } catch (err) {
@@ -80,9 +104,9 @@ const fetchOrder = async () => {
 }
 
 const totalPrice = computed(() => {
-  if (!order.value) return '0.00'
+  if (!order.value || !order.value.dishes) return '0.00'
   return order.value.dishes
-      .reduce((sum, d) => sum + d.quantity * d.price, 0)
+      .reduce((sum, d) => sum + (typeof d.quantity === 'number' ? d.quantity : 0) * (typeof d.price === 'number' ? d.price : 0), 0)
       .toFixed(2)
 })
 
@@ -90,7 +114,8 @@ function getStatusText(status) {
   switch (status) {
     case 'pending':   return 'Pending'
     case 'cooking':   return 'Cooking'
-    case 'delivered': return 'Delivered'
+    case 'delivering': return 'Delivering'
+    case 'completed': return 'Completed'
     case 'canceled':  return 'Canceled'
     default:          return status
   }
@@ -100,15 +125,16 @@ function getStatusType(status) {
   switch (status) {
     case 'pending':   return 'warning'
     case 'cooking':   return ''
-    case 'delivered': return 'success'
+    case 'delivering': return 'info'
+    case 'completed': return 'success'
     case 'canceled':  return 'danger'
     default:          return ''
   }
 }
 
-const handleChangeStatus = async (newStatus) => {
+async function handleChangeStatus(newStatus) {
   try {
-    await axios.patch(`/api/admin/orders/${orderId}/status`, { status: newStatus })
+    await axios.patch(`/api/admin/orders/${orderId}/status`, { status: newStatus }, { withCredentials: true })
     order.value.status = newStatus
     ElMessage.success('Order status updated.')
   } catch (err) {
@@ -117,9 +143,8 @@ const handleChangeStatus = async (newStatus) => {
   }
 }
 
-// 明确跳回订单列表
 function goBack() {
-  router.push('/main/orders')
+  router.push({ name: 'Orders' })
 }
 
 onMounted(fetchOrder)

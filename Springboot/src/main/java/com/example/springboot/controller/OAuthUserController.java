@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-public class UserInfoController {
+public class OAuthUserController {
 
     @GetMapping("/api/userinfo")
     public Map<String, Object> getUserInfo(@AuthenticationPrincipal OAuth2User principal) {
