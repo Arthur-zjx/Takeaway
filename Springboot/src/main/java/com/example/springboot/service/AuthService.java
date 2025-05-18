@@ -48,6 +48,12 @@ public class AuthService {
         return user;
     }
 
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+
     @Transactional
     public User updateAdminAccount(Long id, String username, String password) {
         User admin = userRepository.findById(id)

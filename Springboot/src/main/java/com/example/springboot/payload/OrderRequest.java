@@ -7,7 +7,17 @@ public class OrderRequest {
     private String username;        // 或者直接用 username
     private String phone;
     private String address;
-    private List<Item> dishes;      // 对应前端的 dishes 数组
+    private List<Item> dishes;// 对应前端的 dishes 数组
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
+    }
+
+    private String recipientName;// 前端填写的收货人姓名
 
     public static class Item {
         private String name;

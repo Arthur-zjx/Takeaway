@@ -54,22 +54,25 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { House, ShoppingCart, Document, ArrowDown } from '@element-plus/icons-vue'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElNotification } from 'element-plus'
+import SockJS from 'sockjs-client'
+import { Client } from '@stomp/stompjs'
+import axios from 'axios'
 
 const router = useRouter()
 const route = useRoute()
 const activeMenu = ref(route.path)
 
 // 跟踪路由变化更新选中项
-watch(() => route.path, (newPath) => {
+watch(() => route.path, newPath => {
   activeMenu.value = newPath
 })
 
 // 菜单选择跳转
-const handleSelect = (index) => {
+const handleSelect = index => {
   router.push(index)
 }
 
@@ -83,11 +86,70 @@ const logout = async () => {
     })
     localStorage.removeItem('isLoggedIn')
     router.push('/')
-  } catch (error) {
+  } catch {
     // 用户取消操作
   }
 }
+
+onMounted(async () => {
+  // 获取当前用户信息
+  let currentUser = null
+  try {
+    const { data: me } = await axios.get('/auth/me', { withCredentials: true })
+    currentUser = me.username
+  } catch (err) {
+    console.error('Failed to fetch current user', err)
+  }
+
+  // 预加载当前用户所有订单状态
+  const orderStatusMap = new Map()
+  try {
+    const { data: myOrders } = await axios.get('/api/orders', { withCredentials: true })
+    myOrders.forEach(o => orderStatusMap.set(o.id, o.status))
+  } catch (err) {
+    console.error('Failed to preload orders', err)
+  }
+
+  // 建立 STOMP over SockJS 连接并订阅
+  const stompClient = new Client({
+    webSocketFactory: () => new SockJS('/ws/orders'),
+    reconnectDelay: 5000,
+    debug: msg => console.log('[STOMP]', msg)
+  })
+
+  stompClient.onConnect = () => {
+    stompClient.subscribe('/topic/orders', msg => {
+      const order = JSON.parse(msg.body)
+      if (order.username !== currentUser) return
+
+      const prevStatus = orderStatusMap.get(order.id)
+      if (prevStatus == null) {
+        // 初次见：用户自己下单通知
+        orderStatusMap.set(order.id, order.status)
+        ElNotification({
+          title: 'Order Placed',
+          message: `Your order #${order.id} has been placed`,
+          duration: 3000,
+          onClick: () => router.push(`/user/orders/${order.id}`)
+        })
+      } else if (prevStatus !== order.status) {
+        // 状态更新通知
+        orderStatusMap.set(order.id, order.status)
+        ElNotification({
+          title: 'Order Update',
+          message: `Order #${order.id} is now ${order.status}`,
+          duration: 3000,
+          onClick: () => router.push(`/user/orders/${order.id}`)
+        })
+      }
+      // 相同状态不再通知
+    })
+  }
+
+  stompClient.activate()
+})
 </script>
+
 
 <style scoped>
 .user-layout { display: flex; flex-direction: column; height: 100vh; }

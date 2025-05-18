@@ -57,7 +57,6 @@
   </el-container>
 </template>
 
-
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
@@ -117,7 +116,8 @@ onMounted(async () => {
     console.error('Failed to preload orders for status map', err)
   }
 
-  // 2. 建立 STOMP over SockJS 连接并订阅
+  // 2. 建立 STOMP over SockJS 连接并订阅（确保只订阅一次）
+  let subscription = null
   const stompClient = new Client({
     webSocketFactory: () => new SockJS('/ws/orders'),
     reconnectDelay: 5000,
@@ -125,25 +125,38 @@ onMounted(async () => {
   })
 
   stompClient.onConnect = () => {
-    stompClient.subscribe('/topic/orders', msg => {
+    if (subscription) return
+    subscription = stompClient.subscribe('/topic/orders', msg => {
+      // 先关闭所有旧通知，避免重复
+      ElNotification.closeAll()
+
       const order = JSON.parse(msg.body)
       const prevStatus = orderStatusMap.get(order.id)
 
       if (prevStatus == null) {
-        // 真·新订单通知：duration 设置为 0，永不自动关闭
-        ElNotification({
+        // 新订单：先记录，再通知
+        orderStatusMap.set(order.id, order.status)
+
+        const newNoti = ElNotification({
           title: 'New Order',
           message: `Order #${order.id}, Customer: ${order.username}`,
           duration: 0,
-          onClick: () => router.push(`/main/orders/${order.id}`)
+          onClick: () => {
+            newNoti.close()
+            router.push(`/main/orders/${order.id}`)
+          }
         })
       } else if (prevStatus !== order.status) {
-        // 状态变更通知：3 秒后自动关闭
+        // 状态变更：更新 Map 并通知（3s 自动关闭）
+        orderStatusMap.set(order.id, order.status)
+
         ElNotification({
           title: 'Order Updated',
           message: `Order #${order.id} is now ${order.status}`,
-          duration: 3000,  // 3000ms = 3s
-          onClick: () => router.push(`/main/orders/${order.id}`)
+          duration: 3000,
+          onClick: () => {
+            router.push(`/main/orders/${order.id}`)
+          }
         })
       }
       // 相同状态不再通知
@@ -153,8 +166,6 @@ onMounted(async () => {
   stompClient.activate()
 })
 </script>
-
-
 
 
 <style scoped>

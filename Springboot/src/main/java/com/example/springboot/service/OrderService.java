@@ -30,9 +30,10 @@ public class OrderService {
      * 用户下单：保存订单并返回 DTO 给前端，同时推送到 /topic/orders
      */
     @Transactional
-    public OrderDto saveOrder(OrderRequest req) {
+    public OrderDto saveOrder(String loginUsername, OrderRequest req) {
         Order order = new Order();
-        order.setUsername(req.getUsername());
+        order.setUsername(loginUsername);
+        order.setRecipientName(req.getRecipientName());
         order.setPhone(req.getPhone());
         order.setAddress(req.getAddress());
         order.setStatus("pending");
@@ -113,6 +114,7 @@ public class OrderService {
         dto.setUsername(order.getUsername());
         dto.setPhone(order.getPhone());
         dto.setAddress(order.getAddress());
+        dto.setRecipientName(order.getRecipientName());
         dto.setStatus(order.getStatus());
         dto.setCreatedAt(order.getCreatedAt());
 

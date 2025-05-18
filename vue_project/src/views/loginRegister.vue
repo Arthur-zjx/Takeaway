@@ -62,11 +62,13 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
+const route = useRoute()
+
 const isLogin = ref(true)
 const emailError = ref(false)
 const passwordError = ref(false)
@@ -97,19 +99,28 @@ const login = async () => {
   try {
     const resAdmin = await axios.post(
         '/api/admin/login',
-        { username: form.username, password: form.userpwd }
+        { username: form.username, password: form.userpwd },
+        { withCredentials: true }
     )
     const { token, role } = resAdmin.data
     if (role === 'ADMIN') {
+      // Store admin token and inject into axios headers
       sessionStorage.setItem('ADMIN_TOKEN', token)
+      axios.defaults.headers.common.Authorization = `Bearer ${token}`
+      // Clear any user token
+      localStorage.removeItem('userToken')
+      // Mark as logged in
+      localStorage.setItem('isLoggedIn', 'true')
       ElMessage.success('Admin login successful!')
-      return router.push({ name: 'Dashboard' })
+      // Navigate to dashboard, clearing query params
+      return router.replace({ name: 'Dashboard', query: {} })
     }
   } catch (err) {
     if (err.response?.status !== 401) {
       console.error(err)
       return ElMessage.error('Admin login error')
     }
+    // 401 falls through to user login
   }
 
   // 2. Regular user login
@@ -119,15 +130,15 @@ const login = async () => {
         { username: form.username, password: form.userpwd }
     )
     const userToken = resUser.data.token
-    // store user JWT
     localStorage.setItem('userToken', userToken)
+    axios.defaults.headers.common.Authorization = `Bearer ${userToken}`
     localStorage.setItem('isLoggedIn', 'true')
     localStorage.setItem('username', resUser.data.username)
     localStorage.setItem('userRole', resUser.data.role)
     localStorage.setItem('userId', resUser.data.id)
 
     ElMessage.success(resUser.data.message || 'Login successful!')
-    return router.push({ name: 'UserHome' })
+    return router.replace({ name: 'UserHome', query: {} })
   } catch (err) {
     console.error(err)
     passwordError.value = true
@@ -159,6 +170,8 @@ const googleLogin = () => {
   window.location.href = 'http://localhost:8080/oauth2/authorization/google'
 }
 </script>
+
+
 
 
 

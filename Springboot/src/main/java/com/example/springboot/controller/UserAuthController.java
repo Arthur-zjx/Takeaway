@@ -116,4 +116,20 @@ public class UserAuthController {
     public ResponseEntity<?> logout() {
         return ResponseEntity.ok(Map.of("message", "Logout successful"));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+        // 从 Spring Security 中拿到用户名
+        String username = authentication.getName();
+        // 使用 AuthService 查出完整 User 对象（需要在 AuthService 里实现 findByUsername 方法）
+        User user = authService.findByUsername(username);
+        // 构造返回数据
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("id",       user.getId());
+        resp.put("username", user.getUsername());
+        resp.put("email",    user.getEmail());
+        // 如果 User 对象里有角色字段，也可以返回
+        resp.put("role",     user.getRole());
+        return ResponseEntity.ok(resp);
+    }
 }

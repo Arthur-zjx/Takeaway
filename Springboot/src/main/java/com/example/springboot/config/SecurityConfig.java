@@ -61,16 +61,25 @@ public class SecurityConfig {
                 // 3. 路径权限配置
                 .authorizeHttpRequests(authorize -> authorize
                         // —— Public ——
-                        .requestMatchers("/", "/auth/**", "/oauth2/**", "/logout").permitAll()
-                        // Admin 登录接口放行
-                        .requestMatchers("/api/admin/login").permitAll()
-                        // Admin 接口需 ADMIN 角色
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // 普通用户接口需登录 Session
-                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/", "/auth/register", "/auth/login", "/oauth2/**", "/logout")
+                        .permitAll()
+                        // 当前用户信息接口，需要登录才能访问
+                        .requestMatchers(HttpMethod.GET, "/auth/me")
+                        .authenticated()
+                        // 管理员登录接口放行
+                        .requestMatchers("/api/admin/login")
+                        .permitAll()
+                        // 管理端接口需 ADMIN 角色
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMIN")
+                        // 普通用户接口需登录（Bearer 或 session）
+                        .requestMatchers("/api/**")
+                        .authenticated()
                         // 其它静态资源等放行
-                        .anyRequest().permitAll()
+                        .anyRequest()
+                        .permitAll()
                 )
+
                 // 保留原有 OAuth2 登录
                 .oauth2Login(oauth2 -> oauth2
                         .defaultSuccessUrl("http://localhost:5173/oauth-success", true)

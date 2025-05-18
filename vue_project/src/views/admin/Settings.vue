@@ -26,7 +26,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
 import { ElMessage } from 'element-plus'
+
+const router = useRouter()
 
 const form = ref({
   id: '',
@@ -35,48 +39,53 @@ const form = ref({
   confirmPassword: ''
 })
 
-onMounted(() => {
-  const savedUsername = localStorage.getItem('username')
-  const savedUserId = localStorage.getItem('userId')
-  if (savedUsername) {
-    form.value.username = savedUsername
+onMounted(async () => {
+  const token = sessionStorage.getItem('ADMIN_TOKEN')
+  if (!token) {
+    ElMessage.error('未检测到登录信息，请重新登录')
+    return router.push({ name: 'Login' })
   }
-  if (savedUserId) {
-    form.value.id = savedUserId
+  try {
+    const res = await axios.get('/auth/me', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    form.value.id = res.data.id
+    form.value.username = res.data.username
+  } catch (err) {
+    console.error('获取当前用户失败：', err)
+    ElMessage.error('获取用户信息失败，请重新登录')
+    router.push({ name: 'Login' })
   }
 })
 
 const updateAccount = async () => {
-  // 确保有用户ID
   if (!form.value.id) {
     return ElMessage.error('无法获取用户ID，请重新登录后再试')
   }
-  // 前端校验：确认密码一致
   if (form.value.password !== form.value.confirmPassword) {
     return ElMessage.error('两次输入的密码不一致！')
   }
   try {
-    const response = await fetch(`http://localhost:8080/users/${form.value.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        username: form.value.username,
-        password: form.value.password
-      })
-    })
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || '更新失败')
-    }
-    const result = await response.json()
-    ElMessage.success(result.message || '账户更新成功！')
-    // 可选：更新本地存储
+    const token = sessionStorage.getItem('ADMIN_TOKEN')
+    const res = await axios.put(
+        `/auth/update-admin/${form.value.id}`,
+        {
+          username: form.value.username,
+          password: form.value.password
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        }
+    )
+    ElMessage.success(res.data.message || '账户更新成功！')
+    // 如果想同步更新本地存储用户名：
     localStorage.setItem('username', form.value.username)
-  } catch (error) {
-    ElMessage.error(error.message || '更新出错')
+  } catch (err) {
+    console.error('更新失败：', err)
+    ElMessage.error(err.response?.data?.error || '更新出错')
   }
 }
 </script>

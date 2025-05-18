@@ -7,28 +7,26 @@
         :data="orders"
         stripe
         style="width: 100%; margin-top: 20px"
+        :fit="true"
     >
-      <el-table-column prop="id" label="Order ID" width="120" />
-      <el-table-column prop="status" label="Status" width="120">
+      <!-- 不再给每一列写死宽度 -->
+      <el-table-column prop="id" label="Order ID" min-width="80" />
+      <el-table-column prop="status" label="Status" min-width="100">
         <template #default="{ row }">
           <el-tag :type="statusTagType(row.status)">
             {{ statusText(row.status) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="total" label="Total ($)" width="120" />
-      <el-table-column prop="createdAt" label="Created At" width="180" />
-      <el-table-column label="Actions" width="100">
+      <el-table-column prop="total" label="Total ($)" min-width="100" />
+      <el-table-column prop="createdAt" label="Created At" min-width="160" />
+      <el-table-column label="Actions" min-width="120">
         <template #default="{ row }">
-          <el-button
-              size="small"
-              @click="() => handleView(row)"
-          >
-            View
-          </el-button>
+          <el-button size="small" @click="handleView(row)">View</el-button>
         </template>
       </el-table-column>
     </el-table>
+
 
     <p v-else style="margin-top: 20px;">No orders yet.</p>
   </div>

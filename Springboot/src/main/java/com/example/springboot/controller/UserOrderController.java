@@ -21,25 +21,29 @@ public class UserOrderController {
 
     /** 用户提交订单 */
     @PostMapping("/orders")
-    public OrderDto createOrder(@RequestBody OrderRequest req) {
-        return orderService.saveOrder(req);
+    public OrderDto createOrder(
+            @RequestBody OrderRequest req,
+            Authentication authentication   // 注入当前登录用户
+    ) {
+        // 从 Authentication 中拿到真实登录用户名
+        String loginUsername = authentication.getName();
+        // 交给 Service：登录名 + 前端填写的 recipientName + 其它字段
+        return orderService.saveOrder(loginUsername, req);
     }
 
     /** 获取当前登录用户的所有订单 */
     @GetMapping("/orders")
     public List<OrderDto> getMyOrders(Authentication authentication) {
-        // 1. 从 Authentication 拿用户名
         String username = authentication.getName();
-        // 2. Service 根据用户名去查订单
         return orderService.findByUsername(username);
     }
 
     @GetMapping("/orders/{id}")
     public ResponseEntity<OrderDto> getOrderById(
             @PathVariable Long id,
-            Authentication auth) {
-        // 1. 拿用户名校验，只能看自己的
-        String username = auth.getName();
+            Authentication authentication
+    ) {
+        String username = authentication.getName();
         OrderDto dto = orderService.findById(id);
         if (!dto.getUsername().equals(username)) {
             return ResponseEntity.status(403).build();

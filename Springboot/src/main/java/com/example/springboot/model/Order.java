@@ -28,6 +28,9 @@ public class Order {
     /** 前端“Status”列 */
     private String status = "pending";
 
+    // 前端填写的收货人姓名
+    private String recipientName;
+
     /** 创建时间，用于排序或展示 */
     @CreationTimestamp
     private LocalDateTime createdAt;

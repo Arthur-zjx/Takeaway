@@ -57,121 +57,103 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted} from 'vue'
-import {useRouter} from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { ElNotification, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 
 // 筛选条件
-const filters = ref({
-  name: '',
-  category: '',
-  status: ''
-})
+const filters = ref({ name: '', category: '', status: '' })
 
-// 所有菜品列表（从后端获取）
+// 所有菜品列表
 const dishList = ref([])
 
 // 当前选中的菜品（用于批量删除）
 const selectedDishes = ref([])
 
 // 计算属性：根据筛选条件过滤菜品列表
-const filteredDishes = computed(() => {
-  return dishList.value.filter(dish => {
-    const matchName = filters.value.name ? dish.name.toLowerCase().includes(filters.value.name.toLowerCase()) : true
-    const matchCategory = filters.value.category ? dish.category === filters.value.category : true
-    const matchStatus = filters.value.status ? dish.status === filters.value.status : true
-    return matchName && matchCategory && matchStatus
-  })
-})
+const filteredDishes = computed(() => dishList.value.filter(dish => {
+  const matchName = filters.value.name ? dish.name.toLowerCase().includes(filters.value.name.toLowerCase()) : true
+  const matchCategory = filters.value.category ? dish.category === filters.value.category : true
+  const matchStatus = filters.value.status ? dish.status === filters.value.status : true
+  return matchName && matchCategory && matchStatus
+}))
 
-// 格式化日期函数：将 ISO 字符串转换为本地时间格式
-const formatDate = (timestamp) => {
-  if (!timestamp) return 'empty'
-  const date = new Date(timestamp)
-  return date.toLocaleString()
-}
+// 格式化日期函数
+const formatDate = timestamp => timestamp ? new Date(timestamp).toLocaleString() : 'empty'
 
 // 获取所有菜品数据
 const fetchDishes = async () => {
   try {
-    const response = await axios.get('/api/dish/')
-    dishList.value = response.data
+// 管理端要看所有，带上 ?showAll=true
+    const { data } = await axios.get('/api/dish/?showAll=true', { withCredentials: true })
+    dishList.value = data
   } catch (err) {
     console.error('Error fetching dishes:', err)
   }
 }
 
-// 搜索按钮操作（目前使用本地过滤）
-const handleSearch = () => {
-  console.log('Search filters applied:', filters.value)
-}
+// 搜索按钮操作（本地过滤）
+const handleSearch = () => console.log('Search filters applied:', filters.value)
 
 // 批量删除选中的菜品
 const handleBatchDelete = async () => {
-  if (selectedDishes.value.length === 0) {
-    alert("Please select at least one dish to delete.")
-    return
+  if (!selectedDishes.value.length) {
+    return ElNotification({ type: 'warning', title: 'No Selection', message: 'Please select at least one dish to delete.', duration: 3000 })
   }
-  if (!confirm("Are you sure you want to delete the selected dishes?")) {
-    return
-  }
+  const confirm = await ElMessageBox.confirm('Are you sure you want to delete the selected dishes?', 'Confirm', { type: 'warning' })
+      .catch(() => false)
+  if (!confirm) return
   try {
-    await Promise.all(selectedDishes.value.map(dish => axios.delete(`/api/dish/${dish.id}`)))
-    alert("Selected dishes deleted successfully!")
+    await Promise.all(selectedDishes.value.map(d => axios.delete(`/api/dish/${d.id}`)))
+    ElNotification({ type: 'success', title: 'Deleted', message: 'Selected dishes deleted.', duration: 3000 })
     fetchDishes()
   } catch (err) {
-    console.error("Error deleting selected dishes:", err)
+    console.error('Error deleting selected dishes:', err)
+    ElNotification({type: 'error', title: 'Error', message: 'Failed to delete selected dishes.', duration: 3000})
   }
 }
 
 // 监听表格多选变化
-const handleSelectionChange = (selection) => {
-  selectedDishes.value = selection
-}
+const handleSelectionChange = selection => selectedDishes.value = selection
 
-// 编辑单个菜品，跳转到 DishEdit 页面
-const handleEdit = (dish) => {
-  router.push(`/main/dish/edit/${dish.id}`)
-}
+// 编辑单个菜品
+const handleEdit = dish => router.push(`/main/dish/edit/${dish.id}`)
 
 // 删除单个菜品
-const handleDelete = async (dish) => {
-  if (!confirm(`Are you sure you want to delete ${dish.name}?`)) {
-    return
-  }
+const handleDelete = async dish => {
+  const confirm = await ElMessageBox.confirm(`Delete ${dish.name}?`, 'Confirm', {type: 'warning'})
+      .catch(() => false)
+  if (!confirm) return
   try {
     await axios.delete(`/api/dish/${dish.id}`)
-    alert(`${dish.name} deleted successfully!`)
+    ElNotification({type: 'success', title: 'Deleted', message: `${dish.name} deleted.`, duration: 3000})
     fetchDishes()
   } catch (err) {
-    console.error("Error deleting dish:", err)
+    console.error('Error deleting dish:', err)
+    ElNotification({type: 'error', title: 'Error', message: 'Failed to delete dish.', duration: 3000})
   }
 }
 
-// 切换菜品状态（available/unavailable），调用 PUT 更新菜品状态
-const toggleStatus = async (dish) => {
+// 切换菜品状态
+const toggleStatus = async dish => {
   const newStatus = dish.status === 'available' ? 'unavailable' : 'available'
-  const updatedDish = {...dish, status: newStatus}
   try {
-    await axios.put(`/api/dish/${dish.id}`, updatedDish)
+    await axios.put(`/api/dish/${dish.id}`, {...dish, status: newStatus})
     dish.status = newStatus
-    alert(`Dish status updated to ${newStatus}`)
+    ElNotification({type: 'success', title: 'Updated', message: `Dish status set to ${newStatus}.`, duration: 3000})
   } catch (err) {
-    console.error("Error updating dish status:", err)
+    console.error('Error updating dish status:', err)
+    ElNotification({type: 'error', title: 'Error', message: 'Failed to update dish status.', duration: 3000})
   }
 }
 
-// 添加新菜品，跳转到 DishEdit 页面（不传 id 表示新增）
-const handleAddDish = () => {
-  router.push(`/main/dish/edit`)
-}
+// 添加新菜品
+const handleAddDish = () => router.push(`/main/dish/edit`)
 
-// 页面加载时获取菜品数据
-onMounted(() => {
-  fetchDishes()
-})
+onMounted(fetchDishes)
 </script>
 
 <style scoped>
@@ -187,10 +169,9 @@ onMounted(() => {
 
 .filter-bar {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .filter-item {
@@ -206,7 +187,7 @@ onMounted(() => {
 
 .action-buttons {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+  flex-wrap: wrap;
 }
 </style>

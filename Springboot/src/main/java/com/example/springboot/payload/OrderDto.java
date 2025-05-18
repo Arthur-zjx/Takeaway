@@ -13,6 +13,16 @@ public class OrderDto {
     private LocalDateTime createdAt;
     private List<OrderItemDto> dishes;
 
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
+    }
+
+    private String recipientName;
+
     // --- getters & setters ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

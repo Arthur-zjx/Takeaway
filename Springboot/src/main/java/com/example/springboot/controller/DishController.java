@@ -31,11 +31,14 @@ public class DishController {
         return ResponseEntity.ok(dish);
     }
 
-    // 2. 获取所有菜品信息
+    // 2. 获取所有可用菜品（User 端）
     @GetMapping("/")
-    public ResponseEntity<List<Dish>> getAllDishes() {
-        List<Dish> dishes = dishRepository.findAll();
-        return ResponseEntity.ok(dishes);
+    public ResponseEntity<List<Dish>> getAllDishes(
+            @RequestParam(name = "showAll", defaultValue = "false") boolean showAll) {
+        List<Dish> list = showAll
+                ? dishRepository.findAll()                       // 管理端：查看全部
+                : dishRepository.findAllByStatus("available");   // 用户端：只看 available
+        return ResponseEntity.ok(list);
     }
 
     // 3. 创建菜品并上传图片
