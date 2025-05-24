@@ -6,8 +6,15 @@
       <el-input v-model="filters.name" placeholder="Dish Name" class="filter-item" />
       <el-select v-model="filters.category" placeholder="Category" class="filter-item">
         <el-option label="All" value="" />
-        <el-option label="Soup" value="soup" />
-        <el-option label="Fish" value="fish" />
+        <el-option label="Appetizers" value="appetizers" />
+        <el-option label="Soups" value="soups" />
+        <el-option label="Seafood" value="seafood" />
+        <el-option label="Meat" value="meat" />
+        <el-option label="Vegetables" value="vegetables" />
+        <el-option label="Rice & Noodles" value="rice_noodles" />
+        <el-option label="Chef's Specials" value="chefs-specials" />
+        <el-option label="Desserts" value="desserts" />
+        <el-option label="Beverages" value="beverages" />
       </el-select>
       <el-select v-model="filters.status" placeholder="Status" class="filter-item">
         <el-option label="All" value="" />

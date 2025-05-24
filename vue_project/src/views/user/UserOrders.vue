@@ -72,7 +72,8 @@ function handleView(order) {
 onMounted(async () => {
   try {
     const { data } = await axios.get('/api/orders')
-    orders.value = data
+    orders.value = data.sort((a, b) => b.id - a.id)
+    // Place the first incoming orders at the top in a more prominent position by identify ID sequence
   } catch (err) {
     console.error(err)
     ElMessage.error('Failed to fetch orders.')

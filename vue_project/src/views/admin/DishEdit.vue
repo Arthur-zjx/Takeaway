@@ -10,8 +10,15 @@
       </el-form-item>
       <el-form-item label="Category">
         <el-select v-model="dish.category">
-          <el-option label="Soup" value="soup" />
-          <el-option label="Fish" value="fish" />
+          <el-option label="Appetizers" value="appetizers" />
+          <el-option label="Soups" value="soups" />
+          <el-option label="Seafood" value="seafood" />
+          <el-option label="Meat" value="meat" />
+          <el-option label="Vegetables" value="vegetables" />
+          <el-option label="Rice & Noodles" value="rice_noodles" />
+          <el-option label="Chef's Specials" value="chefs_specials" />
+          <el-option label="Desserts" value="desserts" />
+          <el-option label="Beverages" value="beverages" />
         </el-select>
       </el-form-item>
       <el-form-item label="Description">

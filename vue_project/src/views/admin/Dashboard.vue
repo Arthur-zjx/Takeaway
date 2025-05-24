@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-container">
-    <h2 class="dashboard-title">Today’s Overview</h2>
+    <h2 class="dashboard-title">Overview</h2>
     <el-row :gutter="20" class="stat-row">
       <el-col :span="6" v-for="(item, index) in overviewStats" :key="index">
         <el-card class="stat-card">
