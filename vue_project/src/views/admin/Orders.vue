@@ -11,7 +11,7 @@
           element-loading-text="Loading orders..."
       >
         <el-table-column prop="id" label="Order ID" width="180" />
-        <el-table-column prop="username" label="Customer" width="120" />
+        <el-table-column prop="recipientName" label="Name" width="120" />
         <el-table-column prop="phone" label="Phone" width="120" />
         <el-table-column prop="address" label="Address" />
         <el-table-column prop="status" label="Status" width="120">

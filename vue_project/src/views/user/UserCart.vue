@@ -5,7 +5,7 @@
     <!-- Inline Profile Form -->
     <div class="profile-form">
       <el-form :model="profileForm" label-width="80px">
-        <el-form-item label="Username">
+        <el-form-item label="Name">
           <el-input v-model="profileForm.username" placeholder="Enter your name" />
         </el-form-item>
         <el-form-item label="Phone">
@@ -99,7 +99,7 @@ async function checkout() {
   }
 
   const orderReq = {
-    username: profileForm.username,
+    recipientName: profileForm.username,
     phone:    profileForm.phone,
     address:  profileForm.address,
     dishes:   items.value.map(i => ({ name: i.name, quantity: i.quantity, price: i.price }))

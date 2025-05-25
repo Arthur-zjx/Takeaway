@@ -87,6 +87,9 @@ public class SecurityConfig {
                 // 保留原有 Logout 逻辑
                 .logout(logout -> logout
                         .logoutUrl("/logout")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID", "JWT_TOKEN")
                         .logoutSuccessHandler((request, response, authentication) -> {
                             request.getSession().invalidate();
                             response.setStatus(200);

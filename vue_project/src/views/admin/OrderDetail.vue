@@ -2,7 +2,8 @@
   <div class="order-detail-container">
     <el-card v-if="order" class="order-detail-card">
       <h2>Order #{{ order.id }}</h2>
-      <p><strong>Customer:</strong> {{ order.username }}</p>
+      <p><strong>Username:</strong> {{ order.username }}</p>
+      <p><strong>RecipientName:</strong> {{ order.recipientName }}</p>
       <p><strong>Phone:</strong> {{ order.phone }}</p>
       <p><strong>Address:</strong> {{ order.address }}</p>
       <p><strong>Status:</strong>

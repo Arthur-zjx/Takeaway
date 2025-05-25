@@ -78,17 +78,31 @@ const handleSelect = index => {
 
 // 退出登录
 const logout = async () => {
+  // 1. 弹出确认框
   try {
-    await ElMessageBox.confirm('Are you sure you want to logout?', 'Confirm', {
-      confirmButtonText: 'OK',
-      cancelButtonText: 'Cancel',
-      type: 'warning'
-    })
-    localStorage.removeItem('isLoggedIn')
-    router.push('/')
+    await ElMessageBox.confirm(
+        'Are you sure you want to logout?',
+        'Confirm',
+        { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' }
+    )
   } catch {
     // 用户取消操作
+    return
   }
+
+  // 2. 调用后端登出接口（清 Session/清服务器端 Cookie）
+  try {
+    await axios.post('/logout')
+  } catch (e) {
+    console.warn('Logout request failed:', e)
+  }
+
+  // 3. 本地清除登录状态和 JWT
+  localStorage.removeItem('isLoggedIn')
+  localStorage.removeItem('userToken')  // 如果你把 JWT 存在这里的话
+
+  // 4. 跳回登录页
+  router.replace({ name: 'Login' })
 }
 
 onMounted(async () => {
