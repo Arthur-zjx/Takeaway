@@ -42,7 +42,7 @@ public class UserAuthController {
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", e.getMessage()));
+                    .body(Map.of("error", "Invalid username or password"));
         }
     }
 
@@ -87,7 +87,7 @@ public class UserAuthController {
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", e.getMessage()));
+                    .body(Map.of("error", "Invalid username or password"));
         }
     }
 
@@ -107,7 +107,7 @@ public class UserAuthController {
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", e.getMessage()));
+                    .body(Map.of("error", "Invalid username or password"));
         }
     }
 

@@ -90,7 +90,7 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Google OAuth2 登录 -->
+		<!-- Google OAuth2 login -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-client</artifactId>

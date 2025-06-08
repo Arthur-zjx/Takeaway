@@ -15,7 +15,7 @@ public class OAuthUserController {
         return Map.of(
                 "name", principal.getAttribute("name"),
                 "email", principal.getAttribute("email"),
-                "picture", principal.getAttribute("picture") // Google 用户头像 URL
+                "picture", principal.getAttribute("picture")
         );
     }
 }

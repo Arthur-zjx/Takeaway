@@ -180,7 +180,6 @@ const googleLogin = () => {
 
 
 <style scoped>
-/* 保持原有样式不变 */
 .login-register {
   width: 100vw;
   height: 100vh;
