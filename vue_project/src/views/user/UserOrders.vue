@@ -9,7 +9,7 @@
         style="width: 100%; margin-top: 20px"
         :fit="true"
     >
-      <!-- 不再给每一列写死宽度 -->
+      <!-- No fixed width for each column -->
       <el-table-column prop="id" label="Order ID" min-width="80" />
       <el-table-column prop="status" label="Status" min-width="100">
         <template #default="{ row }">
@@ -40,7 +40,7 @@ import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 
-// 订单列表
+// Order list
 const orders = ref([])
 
 function statusText(s) {
@@ -64,7 +64,7 @@ function statusTagType(s) {
 }
 
 
-// 点击 View 跳转到详情页
+// Click View to navigate to order detail page
 function handleView(order) {
   router.push({ name: 'UserOrderDetail', params: { id: order.id } })
 }
@@ -73,7 +73,6 @@ onMounted(async () => {
   try {
     const { data } = await axios.get('/api/orders')
     orders.value = data.sort((a, b) => b.id - a.id)
-    // Place the first incoming orders at the top in a more prominent position by identify ID sequence
   } catch (err) {
     console.error(err)
     ElMessage.error('Failed to fetch orders.')

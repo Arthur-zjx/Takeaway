@@ -4,7 +4,7 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // 这里把 global 替换成 window，给 sockjs-client 提供全局对象
+  // Define global as window for sockjs-client compatibility
   define: {
     global: 'window'
   },
@@ -18,7 +18,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // 将前端对 /ws 的 WebSocket 请求代理到后端
+      // Proxy front-end /ws WebSocket requests to the backend
       '/ws': {
         target: 'http://localhost:8080',
         ws: true,

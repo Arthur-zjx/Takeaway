@@ -3,10 +3,10 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 
-// 注册接口
+// Register endpoint
 router.post('/register', authController.register);
 
-// 登录接口
+// Login endpoint
 router.post('/login', authController.login);
 
 module.exports = router;

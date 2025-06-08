@@ -16,31 +16,31 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 前端“Customer”列 */
+    /** Customer column (username) */
     private String username;
 
-    /** 前端“Phone”列 */
+    /** Phone column */
     private String phone;
 
-    /** 前端“Address”列 */
+    /** Address column */
     private String address;
 
-    /** 前端“Status”列 */
+    /** Status column */
     private String status = "pending";
 
-//     前端填写的收货人姓名
+    // Recipient name provided by frontend
     private String recipientName;
 
-    /** 创建时间，用于排序或展示 */
+    /** Creation time (for ordering or display) */
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    /** 对应前端的 `dishes` 数组 */
+    /** Matches the `dishes` array from the frontend */
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> dishes;
 
     /**
-     * 不存库，仅用来给前端展示“Total”
+     * Not stored in DB, used only to display total to the frontend
      */
     @Transient
     public Double getTotal() {

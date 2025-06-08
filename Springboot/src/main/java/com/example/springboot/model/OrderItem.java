@@ -12,17 +12,17 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 关联订单 */
+    /** Related order */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
 
-    /** 前端里每个 dish 的名称 */
+    /** Dish name as provided by the frontend */
     private String name;
 
-    /** 数量 */
+    /** Quantity */
     private Integer quantity;
 
-    /** 单价 */
+    /** Unit price */
     private Double price;
 }

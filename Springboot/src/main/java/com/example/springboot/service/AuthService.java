@@ -19,7 +19,7 @@ public class AuthService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    // 注册用户
+    // Register user
     public User register(String username, String email, String password) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new RuntimeException("Username already exists!");
@@ -33,7 +33,7 @@ public class AuthService {
         return userRepository.save(user);
     }
 
-    // 登录用户
+    // User login
     public User login(String username, String password) {
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
@@ -59,19 +59,19 @@ public class AuthService {
         User admin = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Admin not found"));
 
-        // 如果用户名 changed，检查是否重复
+        // If username changed, check for duplicates
         if (!admin.getUsername().equals(username)
                 && userRepository.findByUsername(username).isPresent()) {
             throw new RuntimeException("Username is already taken");
         }
         admin.setUsername(username);
 
-        // 如果前端传了非空密码，就更新
+        // Update password if a non‑blank value is provided
         if (password != null && !password.isBlank()) {
             admin.setPassword(passwordEncoder.encode(password));
         }
 
-        // 保存更新后的管理员信息
+        // Save the updated admin information
         return userRepository.save(admin);
     }
 }

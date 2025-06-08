@@ -42,7 +42,7 @@ const form = ref({
 onMounted(async () => {
   const token = sessionStorage.getItem('ADMIN_TOKEN')
   if (!token) {
-    ElMessage.error('未检测到登录信息，请重新登录')
+    ElMessage.error('No login information detected, please log in again')
     return router.push({ name: 'Login' })
   }
   try {
@@ -52,18 +52,18 @@ onMounted(async () => {
     form.value.id = res.data.id
     form.value.username = res.data.username
   } catch (err) {
-    console.error('获取当前用户失败：', err)
-    ElMessage.error('获取用户信息失败，请重新登录')
+    console.error('Failed to fetch current user:', err)
+    ElMessage.error('Failed to fetch user info, please log in again')
     router.push({ name: 'Login' })
   }
 })
 
 const updateAccount = async () => {
   if (!form.value.id) {
-    return ElMessage.error('无法获取用户ID，请重新登录后再试')
+    return ElMessage.error('Unable to get user ID, please log in again and retry')
   }
   if (form.value.password !== form.value.confirmPassword) {
-    return ElMessage.error('两次输入的密码不一致！')
+    return ElMessage.error('The two passwords do not match!')
   }
   try {
     const token = sessionStorage.getItem('ADMIN_TOKEN')
@@ -80,12 +80,12 @@ const updateAccount = async () => {
           }
         }
     )
-    ElMessage.success(res.data.message || '账户更新成功！')
-    // 如果想同步更新本地存储用户名：
+    ElMessage.success(res.data.message || 'Account updated successfully!')
+    // Optionally update local storage username:
     localStorage.setItem('username', form.value.username)
   } catch (err) {
-    console.error('更新失败：', err)
-    ElMessage.error(err.response?.data?.error || '更新出错')
+    console.error('Update failed:', err)
+    ElMessage.error(err.response?.data?.error || 'update failed')
   }
 }
 </script>

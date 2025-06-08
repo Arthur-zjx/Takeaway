@@ -3,11 +3,11 @@ package com.example.springboot.payload;
 import java.util.List;
 
 public class OrderRequest {
-    private Long userId;            // 可选：如果前端提交 userId
-    private String username;        // 或者直接用 username
+    private Long userId;            // Optional: provided if the frontend sends userId
+    private String username;        // Or simply use username
     private String phone;
     private String address;
-    private List<Item> dishes;// 对应前端的 dishes 数组
+    private List<Item> dishes;// Matches the dishes array from the frontend
 
     public String getRecipientName() {
         return recipientName;
@@ -17,7 +17,7 @@ public class OrderRequest {
         this.recipientName = recipientName;
     }
 
-    private String recipientName;// 前端填写的收货人姓名
+    private String recipientName;// Recipient name entered by the frontend
 
     public static class Item {
         private String name;

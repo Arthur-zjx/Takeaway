@@ -1,16 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// 公共页面
+// Public pages
 import LoginRegister    from '@/views/loginRegister.vue'
 
-// 管理员页面（admin）
+// Admin pages
 import MainLayout       from '@/views/admin/MainLayout.vue'
 import Dashboard        from '@/views/admin/Dashboard.vue'
 import Orders           from '@/views/admin/Orders.vue'
 import DishManage       from '@/views/admin/DishManage.vue'
 import OrderDetail      from '@/views/admin/OrderDetail.vue'
 
-// 用户页面（user）
+// User pages
 import UserMainLayout   from '@/views/user/UserMainLayout.vue'
 import UserHome         from '@/views/user/UserHome.vue'
 import UserCart         from '@/views/user/UserCart.vue'
@@ -30,7 +30,7 @@ const routes = [
         }
     },
 
-    // 管理员路由配置
+    // Admin routes
     {
         path: '/main',
         component: MainLayout,
@@ -45,7 +45,7 @@ const routes = [
         ]
     },
 
-    // 用户路由配置
+    // User routes
     {
         path: '/user',
         component: UserMainLayout,
@@ -64,13 +64,13 @@ const router = createRouter({
     routes
 })
 
-// 登录权限拦截守卫
+// Route guard for authentication
 router.beforeEach((to, from, next) => {
     const adminToken = sessionStorage.getItem('ADMIN_TOKEN')
     const userToken  = localStorage.getItem('userToken')
 
     if (to.path.startsWith('/main')) {
-        // 管理端路由：必须有 adminToken
+        // Admin routes require ADMIN_TOKEN
         if (!adminToken) {
             return next({ name: 'Login' })
         }
@@ -78,14 +78,14 @@ router.beforeEach((to, from, next) => {
     }
 
     if (to.path.startsWith('/user')) {
-        // 用户端路由：必须有 userToken
+        // User routes require userToken
         if (!userToken) {
             return next({ name: 'Login' })
         }
         return next()
     }
 
-    // 其它（/, /oauth-success 等）直接放行
+    // Other routes (/, /oauth-success, etc.) are allowed
     next()
 })
 

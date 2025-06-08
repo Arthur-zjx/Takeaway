@@ -17,6 +17,7 @@ public class User implements Serializable {
     private String email;
     private String password;
 
-    // 新增 role 字段，默认值为 USER
-    private String role = "USER";  // 默认所有用户注册时角色为 USER
+    // New role field, default value USER
+    // Every user is assigned role USER on registration by default
+    private String role = "USER";
 }

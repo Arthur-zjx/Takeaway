@@ -195,6 +195,5 @@ const handleSave = async () => {
 }
 
 .upload-button-container {
-  /* 可根据需要调整上传按钮区域的样式 */
 }
 </style>

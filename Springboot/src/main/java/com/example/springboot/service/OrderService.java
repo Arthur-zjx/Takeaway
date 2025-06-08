@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final SimpMessagingTemplate broker;  // 注入消息模板
+    private final SimpMessagingTemplate broker;  // Inject messaging template
 
-    // 构造器注入 OrderRepository 和 SimpMessagingTemplate
+    // Constructor injection of OrderRepository and SimpMessagingTemplate
     public OrderService(OrderRepository orderRepository,
                         SimpMessagingTemplate broker) {
         this.orderRepository = orderRepository;
@@ -27,7 +27,8 @@ public class OrderService {
     }
 
     /**
-     * 用户下单：保存订单并返回 DTO 给前端，同时推送到 /topic/orders
+     * User places an order: save it, return DTO to the client,
+     * and broadcast the new order to /topic/orders.
      */
     @Transactional
     public OrderDto saveOrder(String loginUsername, OrderRequest req) {
@@ -53,14 +54,14 @@ public class OrderService {
         Order saved = orderRepository.save(order);
         OrderDto dto = toDto(saved);
 
-        // 推送新订单
+        // Broadcast new order
         broker.convertAndSend("/topic/orders", dto);
 
         return dto;
     }
 
     /**
-     * 管理端：查询所有订单
+     * Admin: retrieve all orders.
      */
     @Transactional(readOnly = true)
     public List<OrderDto> findAllOrders() {
@@ -70,7 +71,7 @@ public class OrderService {
     }
 
     /**
-     * 管理端：更新订单状态，并推送变更到 /topic/orders
+     * Admin: update order status and broadcast the change to /topic/orders.
      */
     @Transactional
     public OrderDto updateStatus(Long orderId, String newStatus) {
@@ -81,14 +82,14 @@ public class OrderService {
         Order saved = orderRepository.save(order);
         OrderDto dto = toDto(saved);
 
-        // 推送状态更新
+        // Broadcast status update
         broker.convertAndSend("/topic/orders", dto);
 
         return dto;
     }
 
     /**
-     * 用户端：查询某个用户的订单
+     * User: find orders by username.
      */
     @Transactional(readOnly = true)
     public List<OrderDto> findByUsername(String username) {
@@ -98,7 +99,7 @@ public class OrderService {
     }
 
     /**
-     * 用户端：根据 ID 查询单个订单详情
+     * User: find a single order detail by ID.
      */
     @Transactional(readOnly = true)
     public OrderDto findById(Long id) {
@@ -107,7 +108,7 @@ public class OrderService {
         return toDto(order);
     }
 
-    // --- 私有映射方法 ---
+    // --- Private mapping method ---
     private OrderDto toDto(Order order) {
         OrderDto dto = new OrderDto();
         dto.setId(order.getId());

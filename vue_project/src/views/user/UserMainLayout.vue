@@ -1,6 +1,6 @@
 <template>
   <div class="user-layout">
-    <!-- 顶部栏：渐变绿色背景 -->
+    <!-- Header bar with gradient green background -->
     <header class="header-bar">
       <div class="header-left">
         <h2>Takeaway User Panel</h2>
@@ -19,7 +19,7 @@
       </div>
     </header>
 
-    <!-- 主体布局：左侧菜单 + 右侧内容区 -->
+    <!-- Main layout: sidebar + content area -->
     <div class="body-wrapper">
       <aside class="sidebar">
         <el-menu
@@ -46,7 +46,7 @@
       </aside>
 
       <main class="content">
-        <!-- 展示子页面 -->
+        <!-- Render child route view -->
         <router-view />
       </main>
     </div>
@@ -66,19 +66,19 @@ const router = useRouter()
 const route = useRoute()
 const activeMenu = ref(route.path)
 
-// 跟踪路由变化更新选中项
+// Track route changes and update active menu
 watch(() => route.path, newPath => {
   activeMenu.value = newPath
 })
 
-// 菜单选择跳转
+// Navigate when a menu item is selected
 const handleSelect = index => {
   router.push(index)
 }
 
-// 退出登录
+// Logout
 const logout = async () => {
-  // 1. 弹出确认框
+  // 1. Show confirmation dialog
   try {
     await ElMessageBox.confirm(
         'Are you sure you want to logout?',
@@ -86,27 +86,27 @@ const logout = async () => {
         { confirmButtonText: 'OK', cancelButtonText: 'Cancel', type: 'warning' }
     )
   } catch {
-    // 用户取消操作
+    // User canceled the operation
     return
   }
 
-  // 2. 调用后端登出接口（清 Session/清服务器端 Cookie）
+  // 2. Call backend logout API (clear session/cookie on server)
   try {
     await axios.post('/logout')
   } catch (e) {
     console.warn('Logout request failed:', e)
   }
 
-  // 3. 本地清除登录状态和 JWT
+  // 3. Clear local login state and JWT
   localStorage.removeItem('isLoggedIn')
-  localStorage.removeItem('userToken')  // 如果你把 JWT 存在这里的话
+  localStorage.removeItem('userToken')  // If you stored JWT here
 
-  // 4. 跳回登录页
+  // 4. Redirect to login page
   router.replace({ name: 'Login' })
 }
 
 onMounted(async () => {
-  // 获取当前用户信息
+  // Fetch current user information
   let currentUser = null
   try {
     const { data: me } = await axios.get('/auth/me', { withCredentials: true })
@@ -115,7 +115,7 @@ onMounted(async () => {
     console.error('Failed to fetch current user', err)
   }
 
-  // 预加载当前用户所有订单状态
+  // Preload all order statuses for the current user
   const orderStatusMap = new Map()
   try {
     const { data: myOrders } = await axios.get('/api/orders', { withCredentials: true })
@@ -124,7 +124,7 @@ onMounted(async () => {
     console.error('Failed to preload orders', err)
   }
 
-  // 建立 STOMP over SockJS 连接并订阅
+  // Establish STOMP over SockJS connection and subscribe
   const stompClient = new Client({
     webSocketFactory: () => new SockJS('/ws/orders'),
     reconnectDelay: 5000,
@@ -138,7 +138,7 @@ onMounted(async () => {
 
       const prevStatus = orderStatusMap.get(order.id)
       if (prevStatus == null) {
-        // 初次见：用户自己下单通知
+        // First time: user placed order notification
         orderStatusMap.set(order.id, order.status)
         ElNotification({
           title: 'Order Placed',
@@ -147,7 +147,7 @@ onMounted(async () => {
           onClick: () => router.push(`/user/orders/${order.id}`)
         })
       } else if (prevStatus !== order.status) {
-        // 状态更新通知
+        // Order status update notification
         orderStatusMap.set(order.id, order.status)
         ElNotification({
           title: 'Order Update',
@@ -156,7 +156,7 @@ onMounted(async () => {
           onClick: () => router.push(`/user/orders/${order.id}`)
         })
       }
-      // 相同状态不再通知
+      // Ignore duplicate status updates
     })
   }
 

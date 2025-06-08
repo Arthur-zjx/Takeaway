@@ -71,16 +71,16 @@ import { ElNotification, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 
-// 筛选条件
+// Filter conditions
 const filters = ref({ name: '', category: '', status: '' })
 
-// 所有菜品列表
+// Full dish list
 const dishList = ref([])
 
-// 当前选中的菜品（用于批量删除）
+// Currently selected dishes (for batch delete)
 const selectedDishes = ref([])
 
-// 计算属性：根据筛选条件过滤菜品列表
+// Computed: filter dish list by conditions
 const filteredDishes = computed(() => dishList.value.filter(dish => {
   const matchName = filters.value.name ? dish.name.toLowerCase().includes(filters.value.name.toLowerCase()) : true
   const matchCategory = filters.value.category ? dish.category === filters.value.category : true
@@ -88,13 +88,13 @@ const filteredDishes = computed(() => dishList.value.filter(dish => {
   return matchName && matchCategory && matchStatus
 }))
 
-// 格式化日期函数
+// Date formatting helper
 const formatDate = timestamp => timestamp ? new Date(timestamp).toLocaleString() : 'empty'
 
-// 获取所有菜品数据
+// Fetch all dishes
 const fetchDishes = async () => {
   try {
-// 管理端要看所有，带上 ?showAll=true
+    // Admin should see all dishes, add ?showAll=true
     const { data } = await axios.get('/api/dish/?showAll=true', { withCredentials: true })
     dishList.value = data
   } catch (err) {
@@ -102,10 +102,10 @@ const fetchDishes = async () => {
   }
 }
 
-// 搜索按钮操作（本地过滤）
+// Search button (local filter)
 const handleSearch = () => console.log('Search filters applied:', filters.value)
 
-// 批量删除选中的菜品
+// Batch delete selected dishes
 const handleBatchDelete = async () => {
   if (!selectedDishes.value.length) {
     return ElNotification({ type: 'warning', title: 'No Selection', message: 'Please select at least one dish to delete.', duration: 3000 })
@@ -123,13 +123,13 @@ const handleBatchDelete = async () => {
   }
 }
 
-// 监听表格多选变化
+// Handle table selection change
 const handleSelectionChange = selection => selectedDishes.value = selection
 
-// 编辑单个菜品
+// Edit a single dish
 const handleEdit = dish => router.push(`/main/dish/edit/${dish.id}`)
 
-// 删除单个菜品
+// Delete a single dish
 const handleDelete = async dish => {
   const confirm = await ElMessageBox.confirm(`Delete ${dish.name}?`, 'Confirm', {type: 'warning'})
       .catch(() => false)
@@ -144,7 +144,7 @@ const handleDelete = async dish => {
   }
 }
 
-// 切换菜品状态
+// Toggle dish status
 const toggleStatus = async dish => {
   const newStatus = dish.status === 'available' ? 'unavailable' : 'available'
   try {
@@ -157,7 +157,7 @@ const toggleStatus = async dish => {
   }
 }
 
-// 添加新菜品
+// Add new dish
 const handleAddDish = () => router.push(`/main/dish/edit`)
 
 onMounted(fetchDishes)

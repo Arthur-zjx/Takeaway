@@ -27,7 +27,7 @@ public class S3Config {
 
     @Bean
     public S3Client s3Client() {
-        // 创建 S3 客户端
+        // Create S3 client
         S3Client s3Client = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(
@@ -37,21 +37,21 @@ public class S3Config {
                 )
                 .build();
 
-        // 检查并创建桶
+        // Check bucket existence and create if necessary
         createBucketIfNotExists(s3Client);
 
         return s3Client;
     }
 
-    // 如果桶不存在，则创建它
+    // Create the bucket if it does not exist
     private void createBucketIfNotExists(S3Client s3Client) {
         try {
-            // 检查桶是否存在
+            // Check whether the bucket exists
             boolean exists = s3Client.listBuckets().buckets()
                     .stream()
                     .anyMatch(bucket -> bucket.name().equals(bucketName));
 
-            // 如果桶不存在，则创建
+            // Create the bucket if it does not exist
             if (!exists) {
                 CreateBucketRequest createBucketRequest = CreateBucketRequest.builder()
                         .bucket(bucketName)

@@ -69,18 +69,18 @@ import axios from 'axios'
 const router = useRouter()
 const route = useRoute()
 
-// 当前激活的侧边栏菜单
+// Currently active sidebar menu
 const activeMenu = ref(route.path)
 watch(() => route.path, newPath => {
   activeMenu.value = newPath
 })
 
-// 菜单选择跳转
+// Navigate when a menu item is selected
 const handleSelect = index => {
   router.push(index)
 }
 
-// 退出登录
+// Logout
 const logout = async () => {
   try {
     await ElMessageBox.confirm(
@@ -107,7 +107,7 @@ onMounted(async () => {
     router.replace('/main/dashboard')
   }
 
-  // 1. 预加载现有订单状态到 Map，防止状态更新被当做新订单
+  // 1. Pre‑load existing order statuses into a Map to avoid treating updates as new orders
   const orderStatusMap = new Map()
   try {
     const { data: orders } = await axios.get('/api/admin/orders', { withCredentials: true })
@@ -116,7 +116,7 @@ onMounted(async () => {
     console.error('Failed to preload orders for status map', err)
   }
 
-  // 2. 建立 STOMP over SockJS 连接并订阅（确保只订阅一次）
+  // 2. Establish STOMP over SockJS connection and subscribe (ensure only one subscription)
   let subscription = null
   const stompClient = new Client({
     webSocketFactory: () => new SockJS('/ws/orders'),
@@ -127,14 +127,14 @@ onMounted(async () => {
   stompClient.onConnect = () => {
     if (subscription) return
     subscription = stompClient.subscribe('/topic/orders', msg => {
-      // 先关闭所有旧通知，避免重复
+      // Close all old notifications first to avoid duplication
       ElNotification.closeAll()
 
       const order = JSON.parse(msg.body)
       const prevStatus = orderStatusMap.get(order.id)
 
       if (prevStatus == null) {
-        // 新订单：先记录，再通知
+        // New order: record then notify
         orderStatusMap.set(order.id, order.status)
 
         const newNoti = ElNotification({
@@ -147,7 +147,7 @@ onMounted(async () => {
           }
         })
       } else if (prevStatus !== order.status) {
-        // 状态变更：更新 Map 并通知（3s 自动关闭）
+        // Status change: update Map and notify (auto‑close after 3s)
         orderStatusMap.set(order.id, order.status)
 
         ElNotification({
@@ -159,7 +159,7 @@ onMounted(async () => {
           }
         })
       }
-      // 相同状态不再通知
+      // Ignore duplicate status events
     })
   }
 

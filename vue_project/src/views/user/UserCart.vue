@@ -113,7 +113,7 @@ async function checkout() {
     localStorage.setItem('phone', profileForm.phone)
     localStorage.setItem('address', profileForm.address)
     cartStore.clearCart()
-    // 在 UserCart.vue 的 checkout 成功后
+    // After successful checkout in UserCart.vue
     router.push({ name: 'UserOrders' })
 
   } catch (err) {

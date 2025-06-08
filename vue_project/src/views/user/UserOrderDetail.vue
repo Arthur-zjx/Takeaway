@@ -39,11 +39,11 @@ import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
-// 读取路由参数
+// Read route parameters
 const route = useRoute()
 const orderId = route.params.id
 
-// 订单详情对象
+// Order detail object
 const order = ref({
   id: '',
   status: '',
@@ -52,7 +52,7 @@ const order = ref({
   dishes: []
 })
 
-// 根据 status 生成 Tag 类型
+// Generate tag type based on status
 function statusTagType(s) {
   switch (s) {
     case 'pending':   return 'warning'
@@ -63,7 +63,7 @@ function statusTagType(s) {
   }
 }
 
-// 根据 status 文本
+// Get status text
 function statusText(s) {
   switch (s) {
     case 'pending':   return 'Pending'
@@ -74,12 +74,12 @@ function statusText(s) {
   }
 }
 
-// 格式化时间
+// Format datetime
 function formatDate(dt) {
   return new Date(dt).toLocaleString()
 }
 
-// 取一个计算属性
+// Compute tag type on mount
 const tagType = ref(null)
 onMounted(async () => {
   try {

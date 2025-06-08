@@ -60,10 +60,10 @@ function goToDishes() {
 
 async function fetchStats() {
   try {
-    // 获取订单列表
+// Fetch order list
     const { data: orders } = await axios.get('/api/admin/orders', { withCredentials: true })
 
-    // 计算订单统计
+    // Calculate order statistics
     const totalOrders = orders.length
     const pendingCount = orders.filter(o => o.status === 'pending').length
     const cookingCount = orders.filter(o => o.status === 'cooking').length
@@ -71,7 +71,7 @@ async function fetchStats() {
     const completedCount = orders.filter(o => o.status === 'completed').length
     const canceledCount = orders.filter(o => o.status === 'canceled').length
 
-    // 计算业绩统计
+    // Calculate performance statistics
     const turnover = orders.reduce((sum, o) => sum + (o.total || 0), 0)
     const avgPrice = totalOrders > 0 ? (turnover / totalOrders).toFixed(2) : '0.00'
     const completionRate = totalOrders > 0 ? ((completedCount / totalOrders) * 100).toFixed(0) + '%' : '0%'
@@ -92,7 +92,7 @@ async function fetchStats() {
       { label: 'All Orders', value: totalOrders, status: '' }
     ]
 
-    // 获取菜品统计
+    // Fetch dish statistics
     const { data: ds } = await axios.get('/api/dish/stats', { withCredentials: true })
     dishStats.value = ds
   } catch (err) {

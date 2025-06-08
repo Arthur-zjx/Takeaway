@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:5173")  // 允许前端跨域
+@CrossOrigin(origins = "http://localhost:5173")  // Allow cross‑origin requests from the frontend
 public class UserAuthController {
 
     private final AuthService authService;
@@ -29,7 +29,7 @@ public class UserAuthController {
         this.authManager   = authManager;
     }
 
-    // 注册接口
+    // Registration endpoint
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> payload) {
         try {
@@ -46,11 +46,11 @@ public class UserAuthController {
         }
     }
 
-    // 登录接口：返回 token、id、username、role、message
+    // Login endpoint: returns token, id, username, role, message
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> creds) {
         try {
-            // 1. Spring Security 验证用户名/密码
+            // 1. Spring Security validates username/password
             Authentication auth = authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             creds.get("username"),
@@ -58,23 +58,23 @@ public class UserAuthController {
                     )
             );
 
-            // 2. 加载完整的 User 对象
+            // 2. Load the full User object
             User user = authService.login(
                     creds.get("username"),
                     creds.get("password")
             );
 
-            // 3. 从 Authentication 拿到角色并去除前缀
+            // 3. Extract role from Authentication and remove prefix
             String role = auth.getAuthorities()
                     .iterator()
                     .next()
                     .getAuthority()
                     .replace("ROLE_", "");
 
-            // 4. 静态生成 JWT
+            // 4. Generate JWT token
             String token = JwtUtils.generateToken(user.getUsername(), role);
 
-            // 5. 构建返回体
+            // 5. Build response body
             Map<String, String> resp = new HashMap<>();
             resp.put("token",    token);
             resp.put("id",       user.getId().toString());
@@ -91,7 +91,7 @@ public class UserAuthController {
         }
     }
 
-    // 管理员账号更新接口
+    // Admin account update endpoint
     @PutMapping("/update-admin/{id}")
     public ResponseEntity<?> updateAdminAccount(
             @PathVariable Long id,
@@ -111,7 +111,7 @@ public class UserAuthController {
         }
     }
 
-    // 登出接口（可选，Spring Security 自带 /logout 也可用）
+    // Logout endpoint (optional ‑ Spring Security /logout can also be used)
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         return ResponseEntity.ok(Map.of("message", "Logout successful"));
@@ -119,16 +119,16 @@ public class UserAuthController {
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
-        // 从 Spring Security 中拿到用户名
+        // Get username from Spring Security context
         String username = authentication.getName();
-        // 使用 AuthService 查出完整 User 对象（需要在 AuthService 里实现 findByUsername 方法）
+        // Use AuthService to fetch full User object (requires findByUsername in AuthService)
         User user = authService.findByUsername(username);
-        // 构造返回数据
+        // Build response data
         Map<String, Object> resp = new HashMap<>();
         resp.put("id",       user.getId());
         resp.put("username", user.getUsername());
         resp.put("email",    user.getEmail());
-        // 如果 User 对象里有角色字段，也可以返回
+        // Return role if available in User object
         resp.put("role",     user.getRole());
         return ResponseEntity.ok(resp);
     }

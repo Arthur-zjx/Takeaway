@@ -54,14 +54,14 @@ const fetchOrders = async () => {
     // Place the first incoming orders at the top in a more prominent position by identify ID sequence
   } catch (err) {
     console.error(err)
-    ElMessage.error('获取订单列表失败')
+    ElMessage.error('Failed to fetch order list')
   } finally {
     loading.value = false
   }
 }
 
 const viewOrder = (id) => {
-  // 真正走路由跳转，卸载当前组件
+  // Navigate via router (unmount this component)
   router.push(`/main/orders/${id}`)
 }
 

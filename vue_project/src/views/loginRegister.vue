@@ -2,11 +2,11 @@
   <div class="login-register">
     <div class="contain">
       <div class="big-box" :class="{active:isLogin}">
-        <!-- 登录区域 -->
+        <!-- Login area -->
         <div class="big-contain" key="bigContainLogin" v-if="isLogin">
           <div class="btitle">Account Login</div>
           <div class="bform">
-            <!-- 修改为输入用户名 -->
+            <!-- modify to type username -->
             <input type="text" placeholder="Username" v-model="form.username">
             <span class="errTips" v-if="emailError">* Incorrect username *</span>
             <input type="password" placeholder="Password" v-model="form.userpwd">
@@ -31,7 +31,7 @@
             </div>
           </button>
         </div>
-        <!-- 注册区域 -->
+        <!-- register area -->
         <div class="big-contain" key="bigContainRegister" v-else>
           <div class="btitle">Create Account</div>
           <div class="bform">
@@ -43,7 +43,7 @@
           <button class="bbutton" @click="register">Register</button>
         </div>
       </div>
-      <!-- 切换面板 -->
+      <!-- switch panel -->
       <div class="small-box" :class="{active:isLogin}">
         <div class="small-contain" key="smallContainRegister" v-if="isLogin">
           <div class="stitle">Hello, Friend!</div>
@@ -80,6 +80,7 @@ const form = reactive({
   userpwd: ''
 })
 
+// Switch panel
 const changeType = () => {
   isLogin.value = !isLogin.value
   form.username = ''

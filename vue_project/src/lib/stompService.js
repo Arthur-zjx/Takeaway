@@ -5,10 +5,10 @@ import SockJS from 'sockjs-client'
 let client = null
 
 /**
- * 单例订阅 STOMP 服务
- * @param {string} endpoint  SockJS 端点，如 '/ws/orders'
- * @param {string} topic     Broker 目标，如 '/topic/orders'
- * @param {Function} onMessage 回调(msgObj)
+ * Singleton helper to subscribe to STOMP service
+ * @param {string} endpoint  SockJS endpoint, e.g. '/ws/orders'
+ * @param {string} topic     Broker destination, e.g. '/topic/orders'
+ * @param {Function} onMessage callback(msgObj)
  */
 export function subscribe(endpoint, topic, onMessage) {
     if (!client) {
@@ -17,7 +17,7 @@ export function subscribe(endpoint, topic, onMessage) {
             reconnectDelay: 5000,
             debug: () => {}
         })
-        client.onStompError = frame => console.error('STOMP 错误：', frame)
+        client.onStompError = frame => console.error('STOMP error:', frame)
         client.activate()
     }
     client.onConnect = () => {

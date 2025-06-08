@@ -17,18 +17,18 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // 从数据库读出 User 实体（含 username, password, role）
+        // Load User entity from database (username, password, role)
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        // 根据 user.getRole() 构造一个 ROLE_xxx 权限
+        // Create ROLE_xxx authority based on user.getRole()
         SimpleGrantedAuthority authority =
                 new SimpleGrantedAuthority("ROLE_" + user.getRole());
 
-        // 返回 Spring Security 内置的 UserDetails 实现
+        // Return Spring Security built‑in UserDetails implementation
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
-                user.getPassword(),       // 你的密码是 BCrypt 存好的，配合 BCryptPasswordEncoder 就能校验
+                user.getPassword(),       // Password is stored with BCrypt; BCryptPasswordEncoder validates it
                 Collections.singleton(authority)
         );
     }

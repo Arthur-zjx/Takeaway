@@ -19,19 +19,19 @@ public class UserOrderController {
         this.orderService = orderService;
     }
 
-    /** 用户提交订单 */
+    /** User places an order */
     @PostMapping("/orders")
     public OrderDto createOrder(
             @RequestBody OrderRequest req,
-            Authentication authentication   // 注入当前登录用户
+            Authentication authentication   // Inject the current authenticated user
     ) {
-        // 从 Authentication 中拿到真实登录用户名
+        // Retrieve the authenticated username
         String loginUsername = authentication.getName();
-        // 交给 Service：登录名 + 前端填写的 recipientName + 其它字段
+        // Pass to service: login username + recipientName from frontend + other fields
         return orderService.saveOrder(loginUsername, req);
     }
 
-    /** 获取当前登录用户的所有订单 */
+    /** Get all orders for the current user */
     @GetMapping("/orders")
     public List<OrderDto> getMyOrders(Authentication authentication) {
         String username = authentication.getName();

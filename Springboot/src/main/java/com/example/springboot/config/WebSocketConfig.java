@@ -12,21 +12,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // SockJS 回退端点
+        // SockJS fallback endpoint
         registry.addEndpoint("/ws/orders")
                 .setAllowedOriginPatterns("http://localhost:5173")
                 .withSockJS();
 
-        // 原生 WebSocket 端点
+        // Native WebSocket endpoint
         registry.addEndpoint("/ws/orders")
                 .setAllowedOriginPatterns("http://localhost:5173");
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // 客户端订阅前缀
+        // Prefix for client subscriptions
         registry.enableSimpleBroker("/topic");
-        // 客户端发送前缀（如果需要）
+        // Prefix for messages sent from client (if needed)
         registry.setApplicationDestinationPrefixes("/app");
     }
 }

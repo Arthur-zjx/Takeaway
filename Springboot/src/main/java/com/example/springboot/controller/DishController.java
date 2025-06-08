@@ -23,7 +23,7 @@ public class DishController {
     @Autowired
     private DishRepository dishRepository;
 
-    // 1. 获取单个菜品信息
+    // 1. Get a single dish by ID
     @GetMapping("/{id}")
     public ResponseEntity<Dish> getDishById(@PathVariable("id") Long id) {
         Dish dish = dishRepository.findById(id)
@@ -31,17 +31,17 @@ public class DishController {
         return ResponseEntity.ok(dish);
     }
 
-    // 2. 获取所有可用菜品（User 端）
+    // 2. Get all dishes (user side shows available only unless showAll=true)
     @GetMapping("/")
     public ResponseEntity<List<Dish>> getAllDishes(
             @RequestParam(name = "showAll", defaultValue = "false") boolean showAll) {
         List<Dish> list = showAll
-                ? dishRepository.findAll()                       // 管理端：查看全部
-                : dishRepository.findAllByStatus("available");   // 用户端：只看 available
+                ? dishRepository.findAll()                       // Admin side: show all
+                : dishRepository.findAllByStatus("available");   // User side: show only "available"
         return ResponseEntity.ok(list);
     }
 
-    // 3. 创建菜品并上传图片
+    // 3. Create a dish and upload image
     @PostMapping("/upload")
     public ResponseEntity<Dish> uploadDish(
             @RequestParam("file") MultipartFile file,
@@ -65,15 +65,15 @@ public class DishController {
         return ResponseEntity.ok(savedDish);
     }
 
-    // 4. 更新菜品信息
+    // 4. Update dish information
     @PutMapping("/{id}")
     public ResponseEntity<Dish> updateDish(@PathVariable("id") Long id,
                                            @RequestBody Dish updatedDish) {
-        // 根据 id 查找已有菜品
+        // Find existing dish by ID
         Dish dish = dishRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Dish not found with id: " + id));
 
-        // 更新菜品的各项信息
+        // Update dish properties
         dish.setName(updatedDish.getName());
         dish.setPrice(updatedDish.getPrice());
         dish.setCategory(updatedDish.getCategory());
@@ -81,12 +81,12 @@ public class DishController {
         dish.setDescription(updatedDish.getDescription());
         dish.setImageUrl(updatedDish.getImageUrl());
 
-        // 保存更新后的菜品
+        // Save the updated dish
         Dish savedDish = dishRepository.save(dish);
         return ResponseEntity.ok(savedDish);
     }
 
-    // 5. 删除菜品
+    // 5. Delete a dish
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteDish(@PathVariable("id") Long id) {
         Dish dish = dishRepository.findById(id)
@@ -95,14 +95,14 @@ public class DishController {
         return ResponseEntity.ok().build();
     }
 
-    // 新增接口：只上传图片，返回图片 URL
+    // Extra endpoint: upload image only and return image URL
     @PostMapping("/uploadImage")
     public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
         String imageUrl = s3Service.uploadFile(file);
         return ResponseEntity.ok(imageUrl);
     }
 
-    // 新增接口：获取菜品统计数据
+    // Extra endpoint: get dish statistics
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Integer>> getDishStats() {
         int activeCount = dishRepository.countByStatus("available");
